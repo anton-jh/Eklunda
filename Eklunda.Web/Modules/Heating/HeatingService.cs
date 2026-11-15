@@ -1,4 +1,3 @@
-using System.Globalization;
 using Eklunda.Web.Core.Events;
 using Eklunda.Web.Core.Users;
 using Eklunda.Web.Modules.Heating.Models;
@@ -22,7 +21,7 @@ public class HeatingService(
     {
         var userId = UserId.Example1;
 
-        var entry = new HeatingLogEntry(DateTimeOffset.Now,
+        var entry = new HeatingLogEntry(DateTimeOffset.UtcNow,
             tempTankUpper, tempTankMid, tempTankLower, tempBoiler,
             litFire, stokedFire, notes);
 
@@ -40,16 +39,19 @@ public class HeatingService(
         DateOnly toExclusive,
         CancellationToken cancellationToken)
     {
-        // SQLite stores DateTimeOffset as TEXT ("yyyy-MM-dd HH:mm:ss.FFFFFFFzzz"), and EF can't
-        // translate comparisons or ordering on it. Entries are stamped with local time, so a plain
-        // text comparison against date prefixes filters by local calendar day.
-        var fromText = from.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-        var toText = toExclusive.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        // Timestamps are stored in UTC (timestamptz); convert the local-day bounds to UTC.
+        var fromUtc = StartOfLocalDayUtc(from);
+        var toUtc = StartOfLocalDayUtc(toExclusive);
 
-        var entries = await dbContext.HeatingLogEntries
-            .FromSql($"SELECT * FROM HeatingLogEntries WHERE Timestamp >= {fromText} AND Timestamp < {toText}")
+        return await dbContext.HeatingLogEntries
+            .Where(x => x.Timestamp >= fromUtc && x.Timestamp < toUtc)
+            .OrderByDescending(x => x.Timestamp)
             .ToListAsync(cancellationToken);
+    }
 
-        return entries.OrderByDescending(x => x.Timestamp).ToList();
+    private static DateTimeOffset StartOfLocalDayUtc(DateOnly date)
+    {
+        var local = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Local);
+        return new DateTimeOffset(local).ToUniversalTime();
     }
 }

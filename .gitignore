@@ -364,3 +364,8 @@ FodyWeavers.xsd
 
 # Misc
 *.db
+
+# SQLite (no longer used)
+*.db
+*.db-shm
+*.db-wal

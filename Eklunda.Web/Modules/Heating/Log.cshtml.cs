@@ -30,7 +30,7 @@ public partial class LogModel(HeatingService heatingService) : PageModel
             WeekStart, WeekStart.AddDays(7), cancellationToken);
 
         Days = entries
-            .GroupBy(x => DateOnly.FromDateTime(x.Timestamp.DateTime))
+            .GroupBy(x => DateOnly.FromDateTime(x.Timestamp.LocalDateTime))
             .Select(g => new LogDay(g.Key, g.ToList()))
             .ToList();
     }

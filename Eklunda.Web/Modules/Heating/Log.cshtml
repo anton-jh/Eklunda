@@ -58,7 +58,7 @@ else
                 {
                     var hasTank = entry.TempTankUpper is not null || entry.TempTankMid is not null || entry.TempTankLower is not null;
                     <li class="entry">
-                        <time datetime="@entry.Timestamp.ToString("O")">@entry.Timestamp.ToString("HH:mm")</time>
+                        <time datetime="@entry.Timestamp.ToString("O")">@entry.Timestamp.ToLocalTime().ToString("HH:mm")</time>
                         <div class="entry-body">
                             @if (hasTank || entry.TempTankBoiler is not null)
                             {

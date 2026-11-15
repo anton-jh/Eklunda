@@ -19,7 +19,7 @@ builder.Services.AddRazorPages(options =>
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseSqlite("Data Source=./eklunda.db");
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default"));
 });
 builder.Services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
