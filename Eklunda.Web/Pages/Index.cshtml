@@ -1,9 +1,10 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["HideMenu"] = true;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Hi!</h1>
+<div class="home">
+    <h1>Eklunda</h1>
+    <partial name="/Pages/Shared/_Menu.cshtml" />
 </div>

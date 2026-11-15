@@ -24,7 +24,11 @@
     }
 }
 
-<header>
+@section Styles {
+    <link rel="stylesheet" href="~/css/heating.css" asp-append-version="true" />
+}
+
+<header class="page-header">
     <h1>Uppvärmningslogg</h1>
     <a class="header-action" asp-page="CreateLogEntry">+ Ny</a>
 </header>
@@ -84,5 +88,9 @@ else
         </section>
     }
 
-    await WeekNav();
+    // Repeat the pager at the bottom only when the week is long enough to scroll.
+    if (Model.Days.Sum(x => x.Entries.Count) > 6)
+    {
+        await WeekNav();
+    }
 }

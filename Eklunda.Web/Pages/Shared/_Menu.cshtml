@@ -1,0 +1,19 @@
+@using Eklunda.Web.Shared
+@{
+    var currentPage = ViewContext.RouteData.Values["page"] as string;
+    string? Current(string page) => string.Equals(currentPage, page, StringComparison.OrdinalIgnoreCase) ? "page" : null;
+}
+<nav class="menu" aria-label="Huvudmeny">
+    @foreach (var group in AppMenu.Groups)
+    {
+        <section>
+            <h2>@group.Title</h2>
+            <ul>
+                @foreach (var item in group.Items)
+                {
+                    <li><a asp-page="@item.Page" aria-current="@Current(item.Page)">@item.Title</a></li>
+                }
+            </ul>
+        </section>
+    }
+</nav>
