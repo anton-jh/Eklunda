@@ -1,18 +1,25 @@
 ﻿using Eklunda.Web.Core.Intentions;
 using Eklunda.Web.Core.Users;
 using Eklunda.Web.Modules.Heating.Models;
+using Eklunda.Web.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Eklunda.Web.Persistence;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    : DbContext(options), IUnitOfWork
 {
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         configurationBuilder
             .WrappedGuidConversion<IntentionId>()
             .WrappedGuidConversion<UserId>();
+    }
+
+    public Task CommitAsync(CancellationToken cancellationToken)
+    {
+        return SaveChangesAsync(cancellationToken);
     }
 
     // Core

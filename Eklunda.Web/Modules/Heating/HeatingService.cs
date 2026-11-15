@@ -27,7 +27,5 @@ public class HeatingService(
         dbContext.HeatingLogEntries.Add(entry);
 
         await eventService.Publish(new CreatedHeatingLogEntryEvent(userId));
-
-        await dbContext.SaveChangesAsync();
     }
 }

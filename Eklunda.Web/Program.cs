@@ -1,5 +1,6 @@
 using Eklunda.Web.Core.Events;
 using Eklunda.Web.Persistence;
+using Eklunda.Web.Shared;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlite("Data Source=./eklunda.db");
 });
+builder.Services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
 builder.Services.AddEvents();
 
