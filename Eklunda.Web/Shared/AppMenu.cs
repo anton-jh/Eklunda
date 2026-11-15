@@ -10,7 +10,7 @@ public static class AppMenu
     [
         new("Uppvärmning",
         [
-            new("Ny post", "/Modules/Heating/CreateLogEntry"),
+            new("Ny post", "/Modules/Heating/LogEntry"),
             new("Logg", "/Modules/Heating/Log"),
         ]),
         new("Allmänt",

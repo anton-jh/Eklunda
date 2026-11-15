@@ -14,23 +14,12 @@ public class HeatingService(
 {
     public const string NextCheckDescription = "Kolla uppvärmningen nästa gång";
 
-    public async Task<HeatingLogEntry> CreateLogEntry(
-        UserId userId,
-        int? tempTankUpper,
-        int? tempTankMid,
-        int? tempTankLower,
-        int? tempBoiler,
-        bool stokedFire,
-        bool litFire,
-        AmountLeftInFire? amountLeftInFire,
-        string notes,
-        bool takeNext)
+    public async Task<HeatingLogEntry> CreateLogEntry(UserId userId, LogEntryValues values, bool takeNext)
     {
         var now = DateTimeOffset.UtcNow;
 
-        var entry = new HeatingLogEntry(now,
-            tempTankUpper, tempTankMid, tempTankLower, tempBoiler,
-            litFire, stokedFire, amountLeftInFire, notes, userId);
+        var entry = new HeatingLogEntry(now, userId);
+        entry.Set(values);
 
         dbContext.HeatingLogEntries.Add(entry);
 
@@ -55,18 +44,18 @@ public class HeatingService(
     public async Task<UserId?> GetNextCheckHolder(CancellationToken cancellationToken)
         => (await intentionService.GetOpenFor(CreatedHeatingLogEntryEvent.Key, cancellationToken))?.CreatedBy;
 
-    /// <summary>
-    /// Entries stamped (local time) on or after <paramref name="from"/> and before
-    /// <paramref name="toExclusive"/>, oldest first.
-    /// </summary>
-    public async Task<List<HeatingLogEntry>> GetLogEntries(
-        DateOnly from,
-        DateOnly toExclusive,
-        CancellationToken cancellationToken)
+    public Task<HeatingLogEntry?> GetLogEntry(Guid id, CancellationToken cancellationToken)
+        => dbContext.HeatingLogEntries.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+    public void DeleteLogEntry(HeatingLogEntry entry)
+        => dbContext.HeatingLogEntries.Remove(entry);
+
+    // Entries stamped (local time) on the given day, oldest first.
+    public async Task<List<HeatingLogEntry>> GetLogEntries(DateOnly day, CancellationToken cancellationToken)
     {
         // Timestamps are stored in UTC (timestamptz); convert the local-day bounds to UTC.
-        var fromUtc = StartOfLocalDayUtc(from);
-        var toUtc = StartOfLocalDayUtc(toExclusive);
+        var fromUtc = StartOfLocalDayUtc(day);
+        var toUtc = StartOfLocalDayUtc(day.AddDays(1));
 
         return await dbContext.HeatingLogEntries
             .Where(x => x.Timestamp >= fromUtc && x.Timestamp < toUtc)

@@ -1,0 +1,128 @@
+@page "{id:guid?}"
+@model Eklunda.Web.Modules.Heating.LogEntryModel
+@using Eklunda.Web.Modules.Heating
+@using Eklunda.Web.Modules.Heating.Models
+@{
+    var entry = Model.Entry;
+    ViewData["Title"] = entry is null ? "Ny post" : "Ändra post";
+}
+
+@section Scripts {
+    <script>
+        // Radios can't normally be unchecked; let a second tap clear the choice (the field is optional).
+        document.querySelectorAll("[data-clearable] input[type=radio]").forEach(radio => {
+            let wasChecked = false;
+            radio.addEventListener("pointerdown", () => wasChecked = radio.checked);
+            radio.addEventListener("click", () => {
+                if (wasChecked) radio.checked = false;
+                wasChecked = false;
+            });
+        });
+    </script>
+}
+<nav class="topnav">
+    <a asp-page="Log" asp-route-day="@(entry is null ? null : LogModel.DayParam(LogModel.DayOf(entry)))">‹ Logg</a>
+</nav>
+
+<header class="page-header">
+    <h1>Uppvärmningslogg</h1>
+    <p class="now">@((entry?.Timestamp.ToLocalTime().DateTime ?? DateTime.Now).ToString("ddd d MMM, HH:mm", Eklunda.Web.Shared.Formats.Swedish))</p>
+</header>
+
+<form method="post" autocomplete="off">
+    <fieldset>
+        <legend>Ackumulatortank</legend>
+        <label class="temp">
+            <span>Övre</span>
+            <input name="tempTankUpper" value="@entry?.TempTankUpper" type="number" inputmode="numeric" min="0" max="110" />
+            <em>°C</em>
+        </label>
+        <label class="temp">
+            <span>Mitten</span>
+            <input name="tempTankMid" value="@entry?.TempTankMid" type="number" inputmode="numeric" min="0" max="110" />
+            <em>°C</em>
+        </label>
+        <label class="temp">
+            <span>Nedre</span>
+            <input name="tempTankLower" value="@entry?.TempTankLower" type="number" inputmode="numeric" min="0" max="110" />
+            <em>°C</em>
+        </label>
+    </fieldset>
+
+    <fieldset>
+        <legend>Panna</legend>
+        <label class="temp">
+            <span>Temperatur</span>
+            <input name="tempTankBoiler" value="@entry?.TempTankBoiler" type="number" inputmode="numeric" min="0" max="150" />
+            <em>°C</em>
+        </label>
+    </fieldset>
+
+    <fieldset>
+        <legend>Kvar i pannan</legend>
+        @* Optional: tap the selected option again to clear it. *@
+        <div class="toggles toggles-3" data-clearable>
+            <label class="toggle">
+                <input name="amountLeftInFire" type="radio" value="@AmountLeftInFire.None" checked="@(entry?.AmountLeftInFire == AmountLeftInFire.None)" />
+                <span>Inget</span>
+            </label>
+            <label class="toggle">
+                <input name="amountLeftInFire" type="radio" value="@AmountLeftInFire.Some" checked="@(entry?.AmountLeftInFire == AmountLeftInFire.Some)" />
+                <span>Lite</span>
+            </label>
+            <label class="toggle">
+                <input name="amountLeftInFire" type="radio" value="@AmountLeftInFire.Much" checked="@(entry?.AmountLeftInFire == AmountLeftInFire.Much)" />
+                <span>Mycket</span>
+            </label>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Åtgärder</legend>
+        <div class="toggles">
+            <label class="toggle">
+                <input name="litFire" type="checkbox" value="true" checked="@(entry?.LitFire == true)" />
+                <span>Tänt</span>
+            </label>
+            <label class="toggle">
+                <input name="stokedFire" type="checkbox" value="true" checked="@(entry?.StokedFire == true)" />
+                <span>Lagt på</span>
+            </label>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend><label for="notes">Övrigt</label></legend>
+        <textarea id="notes" name="notes" rows="3" placeholder="Valfritt">@entry?.Notes</textarea>
+    </fieldset>
+
+    @if (entry is null)
+    {
+        <fieldset>
+            <legend>Tar du nästa koll av uppvärmningen?</legend>
+            <div class="toggles">
+                <label class="toggle">
+                    <input name="takeNext" type="radio" value="true" required />
+                    <span>Ja, jag tar nästa</span>
+                </label>
+                <label class="toggle">
+                    <input name="takeNext" type="radio" value="false" required />
+                    <span>Nej</span>
+                </label>
+            </div>
+        </fieldset>
+    }
+
+    <div class="actions">
+        <button type="submit">Spara</button>
+    </div>
+
+    @* After Spara, so Enter still saves. *@
+    @if (entry is not null)
+    {
+        <p class="delete">
+            <button type="submit" asp-page-handler="Delete" asp-route-id="@entry.Id" formnovalidate
+                    class="link-button" onclick="return confirm('Ta bort posten?')">Ta bort posten</button>
+        </p>
+    }
+</form>

@@ -360,6 +360,11 @@ textarea:focus {
     filter: brightness(.9);
 }
 
+.delete {
+    margin: 0;
+    text-align: center;
+}
+
 /* Navigation */
 a {
     color: inherit;

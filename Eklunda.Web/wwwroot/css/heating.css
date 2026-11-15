@@ -10,8 +10,8 @@
     box-shadow: 0 .5rem 1rem -.25rem var(--bg);
 }
 
-/* Week pager: sticks to the bottom of the viewport while the log scrolls under it. */
-.weeknav {
+/* Day pager: sticks to the bottom of the viewport while the log scrolls under it. */
+.daynav {
     position: sticky;
     bottom: calc(.75rem + env(safe-area-inset-bottom));
     z-index: 5;
@@ -26,7 +26,7 @@
     box-shadow: 0 0 0 .75rem var(--bg), 0 -.5rem 1.5rem .75rem var(--bg);
 }
 
-.weeknav-step {
+.daynav-step {
     display: grid;
     place-items: center;
     width: 2.75rem;
@@ -37,46 +37,27 @@
     text-decoration: none;
 }
 
-a.weeknav-step:active {
+a.daynav-step:active {
     background: var(--bg);
 }
 
-span.weeknav-step {
+span.daynav-step {
     opacity: .25;
 }
 
-.weeknav-label {
+.daynav-label {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-.weeknav-label span {
+.daynav-label span {
     color: var(--muted);
     font-size: .8125rem;
 }
 
-/* Days */
-.day + .day {
-    margin-top: 1.25rem;
-}
-
-.day h2 {
-    display: flex;
-    justify-content: space-between;
-    margin: 0 .25rem .375rem;
-    color: var(--muted);
-    font-size: .8125rem;
-    font-weight: 600;
-}
-
-.day h2 small {
-    font-size: inherit;
-    font-weight: 400;
-    opacity: .7;
-}
-
+/* Entries */
 .entries {
     margin: 0;
     padding: 0 1rem;
@@ -84,12 +65,20 @@ span.weeknav-step {
     border: 1px solid var(--border);
     border-radius: .875rem;
     background: var(--surface);
+    overflow: hidden;
 }
 
-.entry {
+/* The whole entry opens it for editing; pulled out over the list's padding so the press shows edge to edge. */
+.entry-link {
     display: flex;
     gap: .875rem;
-    padding: .75rem 0;
+    margin: 0 -1rem;
+    padding: .75rem 1rem;
+    text-decoration: none;
+}
+
+.entry-link:active {
+    background: var(--bg);
 }
 
 .entry + .entry {

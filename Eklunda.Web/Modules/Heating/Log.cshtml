@@ -19,107 +19,97 @@
 @* Pinned under the app bar so the add button is always reachable. *@
 <header class="page-header log-header">
     <h1>Uppvärmningslogg</h1>
-    <a class="header-action" asp-page="CreateLogEntry">+ Ny</a>
+    <a class="header-action" asp-page="LogEntry">+ Ny</a>
 </header>
 
-@if (!Model.IsCurrentWeek)
+@if (!Model.IsToday)
 {
-    <p class="jump"><a asp-route-week="">Till denna vecka</a></p>
+    <p class="jump"><a asp-route-day="">Till idag</a></p>
 }
 
-@if (Model.Days.Count == 0)
+@if (Model.Entries.Count == 0)
 {
-    <p class="empty">Inga poster den här veckan.</p>
+    <p class="empty">Inga poster den här dagen.</p>
 }
 else
 {
-    foreach (var day in Model.Days)
+    <ol class="entries">
+        @for (var i = 0; i < Model.Entries.Count; i++)
+        {
+            var entry = Model.Entries[i];
+            // Entries are oldest first; show the time since the entry above, between the two.
+            if (i > 0)
+            {
+                <li class="gap" aria-label="Tid mellan poster">
+                    <span>@LogModel.Duration(entry.Timestamp - Model.Entries[i - 1].Timestamp)</span>
+                </li>
+            }
+            var hasTank = HeatingFormat.HasTank(entry);
+            <li class="entry">
+                <a class="entry-link" asp-page="LogEntry" asp-route-id="@entry.Id">
+                    <time datetime="@entry.Timestamp.ToString("O")">@entry.Timestamp.ToLocalTime().ToString("HH:mm")</time>
+                    <div class="entry-body">
+                        @if (hasTank || entry.TempTankBoiler is not null || entry.AmountLeftInFire is not null)
+                        {
+                            <div class="readings">
+                                @if (hasTank)
+                                {
+                                    <span><small>Tank</small> @HeatingFormat.Temp(entry.TempTankUpper) · @HeatingFormat.Temp(entry.TempTankMid) · @HeatingFormat.Temp(entry.TempTankLower)°</span>
+                                }
+                                @if (entry.TempTankBoiler is not null)
+                                {
+                                    <span><small>Panna</small> @(entry.TempTankBoiler)°</span>
+                                }
+                                @if (entry.AmountLeftInFire is { } amountLeft)
+                                {
+                                    <span><small>Kvar</small> @HeatingFormat.AmountLeft(amountLeft)</span>
+                                }
+                            </div>
+                        }
+                        @if (entry.LitFire || entry.StokedFire || !string.IsNullOrWhiteSpace(entry.Notes))
+                        {
+                            <div class="entry-extra">
+                                @if (entry.LitFire) { <span class="flag">Tänt</span> }
+                                @if (entry.StokedFire) { <span class="flag">Lagt på</span> }
+                                @if (!string.IsNullOrWhiteSpace(entry.Notes)) { <span class="notes">@entry.Notes</span> }
+                            </div>
+                        }
+                        @if (entry.CreatedBy is { } createdBy)
+                        {
+                            <div class="entry-by">@Model.Who(createdBy)</div>
+                        }
+                    </div>
+                </a>
+            </li>
+        }
+    </ol>
+}
+
+<div class="after-log">
+    @if (Model.Toast is { } toast)
     {
-        <section class="day">
-            <h2>
-                <span>@LogModel.DayLabel(day.Date)</span>
-                <small>@day.Entries.Count st</small>
-            </h2>
-            <ol class="entries">
-                @for (var i = 0; i < day.Entries.Count; i++)
-                {
-                    var entry = day.Entries[i];
-                    // Entries are oldest first; show the time since the entry above, between the two.
-                    if (i > 0)
-                    {
-                        <li class="gap" aria-label="Tid mellan poster">
-                            <span>@LogModel.Duration(entry.Timestamp - day.Entries[i - 1].Timestamp)</span>
-                        </li>
-                    }
-                    var hasTank = HeatingFormat.HasTank(entry);
-                    <li class="entry">
-                        <time datetime="@entry.Timestamp.ToString("O")">@entry.Timestamp.ToLocalTime().ToString("HH:mm")</time>
-                        <div class="entry-body">
-                            @if (hasTank || entry.TempTankBoiler is not null || entry.AmountLeftInFire is not null)
-                            {
-                                <div class="readings">
-                                    @if (hasTank)
-                                    {
-                                        <span><small>Tank</small> @HeatingFormat.Temp(entry.TempTankUpper) · @HeatingFormat.Temp(entry.TempTankMid) · @HeatingFormat.Temp(entry.TempTankLower)°</span>
-                                    }
-                                    @if (entry.TempTankBoiler is not null)
-                                    {
-                                        <span><small>Panna</small> @(entry.TempTankBoiler)°</span>
-                                    }
-                                    @if (entry.AmountLeftInFire is { } amountLeft)
-                                    {
-                                        <span><small>Kvar</small> @HeatingFormat.AmountLeft(amountLeft)</span>
-                                    }
-                                </div>
-                            }
-                            @if (entry.LitFire || entry.StokedFire || !string.IsNullOrWhiteSpace(entry.Notes))
-                            {
-                                <div class="entry-extra">
-                                    @if (entry.LitFire) { <span class="flag">Tänt</span> }
-                                    @if (entry.StokedFire) { <span class="flag">Lagt på</span> }
-                                    @if (!string.IsNullOrWhiteSpace(entry.Notes)) { <span class="notes">@entry.Notes</span> }
-                                </div>
-                            }
-                            @if (entry.CreatedBy is { } createdBy)
-                            {
-                                <div class="entry-by">@Model.Who(createdBy)</div>
-                            }
-                        </div>
-                    </li>
-                }
-            </ol>
-        </section>
+        <p class="toast" role="status">@toast</p>
     }
-}
 
-@if (Model.IsCurrentWeek)
-{
-    <div class="after-log">
-        @if (Model.Saved)
-        {
-            <p class="toast" role="status">Sparat ✓</p>
-        }
-
-        @if (Model.NextCheckHolder is { } holder)
-        {
-            <p class="next-check" role="status">@Model.Who(holder) tar nästa koll.</p>
-        }
-    </div>
-}
+    @if (Model.IsToday && Model.NextCheckHolder is { } holder)
+    {
+        <p class="next-check" role="status">@Model.Who(holder) tar nästa koll.</p>
+    }
+</div>
 
 @* Single pager, pinned to the bottom of the viewport while scrolling. *@
-<nav class="weeknav" aria-label="Veckor">
-    <a class="weeknav-step" asp-route-week="@Model.PreviousWeek" aria-label="Föregående vecka">‹</a>
-    <div class="weeknav-label">
-        <strong>Vecka @Model.WeekNumber</strong>
-        <span>@Model.WeekRange</span>
+<nav class="daynav" aria-label="Dagar">
+    <a class="daynav-step" asp-route-day="@Model.PreviousDay" aria-label="Föregående dag">‹</a>
+    <div class="daynav-label">
+        <strong>@Model.DayName</strong>
+        <span>@Model.DayDate</span>
     </div>
-    @if (Model.NextWeek is { } next)
+    @if (Model.NextDay is { } next)
     {
-        <a class="weeknav-step" asp-route-week="@next" aria-label="Nästa vecka">›</a>
+        <a class="daynav-step" asp-route-day="@next" aria-label="Nästa dag">›</a>
     }
     else
     {
-        <span class="weeknav-step" aria-hidden="true">›</span>
+        <span class="daynav-step" aria-hidden="true">›</span>
     }
 </nav>

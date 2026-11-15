@@ -2,17 +2,29 @@
 
 namespace Eklunda.Web.Modules.Heating.Models;
 
-public record HeatingLogEntry(
-    DateTimeOffset Timestamp,
-    int? TempTankUpper,
-    int? TempTankMid,
-    int? TempTankLower,
-    int? TempTankBoiler,
-    bool LitFire,
-    bool StokedFire,
-    AmountLeftInFire? AmountLeftInFire,
-    string Notes,
-    UserId? CreatedBy)
+public class HeatingLogEntry(DateTimeOffset timestamp, UserId? createdBy)
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
+    public DateTimeOffset Timestamp { get; private set; } = timestamp;
+    public int? TempTankUpper { get; private set; }
+    public int? TempTankMid { get; private set; }
+    public int? TempTankLower { get; private set; }
+    public int? TempTankBoiler { get; private set; }
+    public bool LitFire { get; private set; }
+    public bool StokedFire { get; private set; }
+    public AmountLeftInFire? AmountLeftInFire { get; private set; }
+    public string Notes { get; private set; } = "";
+    public UserId? CreatedBy { get; private set; } = createdBy;
+
+    public void Set(LogEntryValues values)
+    {
+        TempTankUpper = values.TempTankUpper;
+        TempTankMid = values.TempTankMid;
+        TempTankLower = values.TempTankLower;
+        TempTankBoiler = values.TempTankBoiler;
+        LitFire = values.LitFire;
+        StokedFire = values.StokedFire;
+        AmountLeftInFire = values.AmountLeftInFire;
+        Notes = values.Notes?.Trim() ?? "";
+    }
 }

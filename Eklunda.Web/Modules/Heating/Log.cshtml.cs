@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.RegularExpressions;
 using Eklunda.Web.Core.Users;
 using Eklunda.Web.Modules.Heating.Models;
 using Eklunda.Web.Shared;
@@ -7,77 +6,63 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Eklunda.Web.Modules.Heating;
 
-public partial class LogModel(
+public class LogModel(
     HeatingService heatingService,
     UserService userService,
     ICurrentUser currentUser)
     : PageModel
 {
-    public const string SavedKey = "HeatingLogSaved";
+    public const string ToastKey = "HeatingLogToast";
 
-    public DateOnly WeekStart { get; private set; }
-    public DateOnly WeekEnd => WeekStart.AddDays(6);
-    public int WeekNumber => ISOWeek.GetWeekOfYear(WeekStart.ToDateTime(TimeOnly.MinValue));
-    public bool IsCurrentWeek { get; private set; }
-    public string PreviousWeek => FormatWeek(WeekStart.AddDays(-7));
-    public string? NextWeek => IsCurrentWeek ? null : FormatWeek(WeekStart.AddDays(7));
-    public List<LogDay> Days { get; private set; } = [];
+    private const string DayFormat = "yyyy-MM-dd";
+
+    public DateOnly Day { get; private set; }
+    public bool IsToday => Day == Today;
+    public string PreviousDay => DayParam(Day.AddDays(-1));
+    public string? NextDay => IsToday ? null : DayParam(Day.AddDays(1));
+    public List<HeatingLogEntry> Entries { get; private set; } = [];
     public IReadOnlyDictionary<UserId, string> Names { get; private set; } = new Dictionary<UserId, string>();
     public UserId Me => currentUser.Id;
 
-    public bool Saved { get; private set; }
+    public string? Toast { get; private set; }
 
     public UserId? NextCheckHolder { get; private set; }
 
-    public async Task OnGet(string? week, CancellationToken cancellationToken)
+    public async Task OnGet(string? day, CancellationToken cancellationToken)
     {
-        Saved = TempData[SavedKey] is true;
+        Toast = TempData[ToastKey] as string;
         Names = await userService.GetNames(cancellationToken);
         NextCheckHolder = await heatingService.GetNextCheckHolder(cancellationToken);
 
-        var currentWeekStart = StartOfWeek(Today);
-
-        WeekStart = TryParseWeek(week, out var parsed) && parsed < currentWeekStart
+        Day = DateOnly.TryParseExact(day, DayFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
+              && parsed < Today
             ? parsed
-            : currentWeekStart;
-        IsCurrentWeek = WeekStart == currentWeekStart;
+            : Today;
 
-        var entries = await heatingService.GetLogEntries(
-            WeekStart, WeekStart.AddDays(7), cancellationToken);
-
-        Days = entries
-            .GroupBy(x => DateOnly.FromDateTime(x.Timestamp.LocalDateTime))
-            .Select(g => new LogDay(g.Key, g.ToList()))
-            .ToList();
+        Entries = await heatingService.GetLogEntries(Day, cancellationToken);
     }
-
-    public record LogDay(DateOnly Date, List<HeatingLogEntry> Entries);
 
     public string Who(UserId? id) => Names.NameOf(id, Me);
 
+    public static DateOnly DayOf(HeatingLogEntry entry) => DateOnly.FromDateTime(entry.Timestamp.LocalDateTime);
+
+    public static string DayParam(DateOnly date) => date.ToString(DayFormat, CultureInfo.InvariantCulture);
+
     // --- Formatting -------------------------------------------------------------------------
 
-    public string WeekRange
+    public string DayName
     {
         get
         {
-            var (a, b) = (WeekStart, WeekEnd);
-            if (a.Year != b.Year)
-                return $"{a.Day} {Month(a)} {a.Year} – {b.Day} {Month(b)} {b.Year}";
-            if (a.Month != b.Month)
-                return $"{a.Day} {Month(a)} – {b.Day} {Month(b)} {b.Year}";
-            return $"{a.Day}–{b.Day} {Month(b)} {b.Year}";
+            if (Day == Today) return "Idag";
+            if (Day == Today.AddDays(-1)) return "Igår";
+
+            var weekday = Formats.Swedish.DateTimeFormat.GetDayName(Day.DayOfWeek);
+            return $"{char.ToUpper(weekday[0], Formats.Swedish)}{weekday[1..]}";
         }
     }
 
-    public static string DayLabel(DateOnly date)
-    {
-        if (date == Today) return "Idag";
-        if (date == Today.AddDays(-1)) return "Igår";
-
-        var weekday = Formats.Swedish.DateTimeFormat.GetDayName(date.DayOfWeek);
-        return $"{char.ToUpper(weekday[0], Formats.Swedish)}{weekday[1..]} {date.Day} {Month(date)}";
-    }
+    public string DayDate => Day.ToString("d MMMM yyyy", Formats.Swedish);
 
     public static string Duration(TimeSpan span)
     {
@@ -87,38 +72,5 @@ public partial class LogModel(
         return m == 0 ? $"{h}h" : $"{h}h {m}min";
     }
 
-    private static string Month(DateOnly date)
-        => Formats.Swedish.DateTimeFormat.GetAbbreviatedMonthName(date.Month).TrimEnd('.');
-
-    // --- Week helpers -----------------------------------------------------------------------
-
     private static DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
-
-    private static DateOnly StartOfWeek(DateOnly date)
-        => date.AddDays(-(((int)date.DayOfWeek + 6) % 7));
-
-    private static string FormatWeek(DateOnly weekStart)
-    {
-        var dateTime = weekStart.ToDateTime(TimeOnly.MinValue);
-        return $"{ISOWeek.GetYear(dateTime)}-W{ISOWeek.GetWeekOfYear(dateTime):00}";
-    }
-
-    private static bool TryParseWeek(string? value, out DateOnly weekStart)
-    {
-        weekStart = default;
-        var match = value is null ? null : WeekPattern().Match(value);
-        if (match is not { Success: true })
-            return false;
-
-        var year = int.Parse(match.Groups[1].Value);
-        var week = int.Parse(match.Groups[2].Value);
-        if (year is < 2000 or > 9998 || week < 1 || week > ISOWeek.GetWeeksInYear(year))
-            return false;
-
-        weekStart = DateOnly.FromDateTime(ISOWeek.ToDateTime(year, week, DayOfWeek.Monday));
-        return true;
-    }
-
-    [GeneratedRegex(@"^(\d{4})-W(\d{1,2})$", RegexOptions.IgnoreCase)]
-    private static partial Regex WeekPattern();
 }
