@@ -45,7 +45,7 @@ public class HeatingService(
 
         return await dbContext.HeatingLogEntries
             .Where(x => x.Timestamp >= fromUtc && x.Timestamp < toUtc)
-            .OrderByDescending(x => x.Timestamp)
+            .OrderBy(x => x.Timestamp)
             .ToListAsync(cancellationToken);
     }
 

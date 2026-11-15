@@ -100,6 +100,28 @@ main > .weeknav:last-child {
     border-top: 1px solid var(--border);
 }
 
+/* Time between two entries on the same day: a labelled divider. */
+.gap {
+    display: flex;
+    align-items: center;
+    gap: .875rem;
+    color: var(--muted);
+    font-size: .75rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.gap span {
+    flex-shrink: 0;
+    min-width: 2.75rem;
+    white-space: nowrap;
+}
+
+.gap::after {
+    content: "";
+    flex: 1;
+    border-top: 1px dashed var(--border);
+}
+
 .entry time {
     flex-shrink: 0;
     width: 2.75rem;

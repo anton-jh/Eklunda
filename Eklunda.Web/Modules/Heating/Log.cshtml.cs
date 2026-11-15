@@ -63,6 +63,14 @@ public partial class LogModel(HeatingService heatingService) : PageModel
 
     public static string Temp(int? value) => value?.ToString(Swedish) ?? "–";
 
+    public static string Duration(TimeSpan span)
+    {
+        var minutes = (int)Math.Round(span.Duration().TotalMinutes);
+        var (h, m) = (minutes / 60, minutes % 60);
+        if (h == 0) return $"{m}min";
+        return m == 0 ? $"{h}h" : $"{h}h {m}min";
+    }
+
     private static string Month(DateOnly date)
         => Swedish.DateTimeFormat.GetAbbreviatedMonthName(date.Month).TrimEnd('.');
 

@@ -28,6 +28,13 @@
     <link rel="stylesheet" href="~/css/heating.css" asp-append-version="true" />
 }
 
+@section Scripts {
+    <script>
+        // Newest entries are at the bottom; start there. "instant" overrides Bootstrap's smooth scrolling.
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" });
+    </script>
+}
+
 <header class="page-header">
     <h1>Uppvärmningslogg</h1>
     <a class="header-action" asp-page="CreateLogEntry">+ Ny</a>
@@ -54,8 +61,16 @@ else
                 <small>@day.Entries.Count st</small>
             </h2>
             <ol class="entries">
-                @foreach (var entry in day.Entries)
+                @for (var i = 0; i < day.Entries.Count; i++)
                 {
+                    var entry = day.Entries[i];
+                    // Entries are oldest first; show the time since the entry above, between the two.
+                    if (i > 0)
+                    {
+                        <li class="gap" aria-label="Tid mellan poster">
+                            <span>@LogModel.Duration(entry.Timestamp - day.Entries[i - 1].Timestamp)</span>
+                        </li>
+                    }
                     var hasTank = entry.TempTankUpper is not null || entry.TempTankMid is not null || entry.TempTankLower is not null;
                     <li class="entry">
                         <time datetime="@entry.Timestamp.ToString("O")">@entry.Timestamp.ToLocalTime().ToString("HH:mm")</time>

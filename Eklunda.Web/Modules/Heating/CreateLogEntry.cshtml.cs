@@ -33,6 +33,6 @@ public class CreateLogEntryModel(
         await unitOfWork.CommitAsync(cancellationToken);
 
         Saved = true;
-        return RedirectToPage();
+        return RedirectToPage("Log");
     }
 }
