@@ -1,3 +1,15 @@
+/* Title + add button: sticks just below the app bar (3.25rem + 1px border) while the log scrolls under it.
+   Pulled out over main's padding so the background covers the full width. */
+.log-header {
+    position: sticky;
+    top: calc(3.25rem + 1px);
+    z-index: 5;
+    margin: -1rem -1rem .25rem;
+    padding: 1rem 1rem .75rem;
+    background: var(--bg);
+    box-shadow: 0 .5rem 1rem -.25rem var(--bg);
+}
+
 /* Week pager: sticks to the bottom of the viewport while the log scrolls under it. */
 .weeknav {
     position: sticky;
