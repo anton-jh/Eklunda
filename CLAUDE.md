@@ -33,6 +33,7 @@ An intention says **"I plan on taking care of this next, so you don't have to."*
 - CRLF line endings (except files under `deploy/`, which run on Linux).
 - Point out big issues you find. Fix small ones directly.
 - Ask follow-up questions if something is unclear. Do not guess.
+- Stay on develop. No new branches if not specifically asked for.
 
 ## Conventions
 
