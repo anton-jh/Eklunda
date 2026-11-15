@@ -13,8 +13,6 @@ public class IndexModel(
     IUnitOfWork unitOfWork)
     : PageModel
 {
-    private const int DoneLimit = 50;
-
     [BindProperty(SupportsGet = true)]
     public bool ShowDone { get; set; }
 
@@ -30,7 +28,7 @@ public class IndexModel(
         Open = await intentionService.GetOpen(cancellationToken);
         DoneCount = await intentionService.CountDone(cancellationToken);
         if (ShowDone)
-            Done = await intentionService.GetDone(DoneLimit, cancellationToken);
+            Done = await intentionService.GetDone(cancellationToken);
     }
 
     public async Task<IActionResult> OnPostCreate(string? description, CancellationToken cancellationToken)

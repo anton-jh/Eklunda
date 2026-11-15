@@ -1,22 +1,10 @@
 ﻿using Eklunda.Web.Core.Events;
-using Eklunda.Web.Persistence;
-using Microsoft.EntityFrameworkCore;
 
 namespace Eklunda.Web.Core.Intentions;
 
 public class IntentionCompletionEventListener(
-    ApplicationDbContext dbContext) : IEventListener
+    IntentionService intentionService) : IEventListener
 {
-    public async Task Process(IEvent e)
-    {
-        var eventString = e.Serialize();
-        var intentions = await dbContext.Intentions
-            .Where(x => x.DoneWhenEvent == eventString && x.DoneAt == null)
-            .ToListAsync();
-
-        foreach (var intention in intentions)
-        {
-            intention.MarkDone(e.OccurredAt, e.TriggeredBy);
-        }
-    }
+    public Task Process(IEvent e)
+        => intentionService.MarkDoneFor(e.Serialize(), e.OccurredAt, e.TriggeredBy, CancellationToken.None);
 }

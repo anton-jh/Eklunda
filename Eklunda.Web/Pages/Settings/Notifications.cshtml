@@ -1,0 +1,39 @@
+@page
+@model Eklunda.Web.Pages.Settings.NotificationsModel
+@{
+    ViewData["Title"] = "Notiser";
+    ViewData["HideMenu"] = true;
+}
+
+@section Scripts {
+    <script>
+        (() => {
+            const box = document.querySelector("[data-push]");
+            const enable = box.querySelector("[data-push-enable]");
+            const push = window.eklundaPush;
+            const next = () => location.replace(box.dataset.next);
+
+            enable.addEventListener("click", async () => {
+                enable.disabled = true;
+                try { await push.enable(box.dataset.push); }
+                catch (e) { console.error(e); }
+                next();
+            });
+
+            // Only ask when there is something to turn on.
+            push.state().then(state => {
+                if (state === "off") box.hidden = false;
+                else next();
+            });
+        })();
+    </script>
+}
+
+<div class="whoami" data-push="@Model.PushPublicKey" data-next="@Model.Next" hidden>
+    <h1>Notiser?</h1>
+    <p class="hint">Få veta när något händer.</p>
+    <div class="choices">
+        <button type="button" data-push-enable>Slå på notiser</button>
+    </div>
+    <p class="jump"><a href="@Model.Next">Inte nu</a></p>
+</div>

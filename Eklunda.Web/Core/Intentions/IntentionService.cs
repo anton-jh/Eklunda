@@ -7,6 +7,7 @@ namespace Eklunda.Web.Core.Intentions;
 public class IntentionService(ApplicationDbContext dbContext)
 {
     public const int MaxDescriptionLength = 200;
+    public const int KeepDone = 20;
 
     public Task<List<Intention>> GetOpen(CancellationToken cancellationToken)
         => dbContext.Intentions
@@ -14,11 +15,10 @@ public class IntentionService(ApplicationDbContext dbContext)
             .OrderBy(x => x.CreatedDate)
             .ToListAsync(cancellationToken);
 
-    public Task<List<Intention>> GetDone(int take, CancellationToken cancellationToken)
+    public Task<List<Intention>> GetDone(CancellationToken cancellationToken)
         => dbContext.Intentions
             .Where(x => x.DoneAt != null)
             .OrderByDescending(x => x.DoneAt)
-            .Take(take)
             .ToListAsync(cancellationToken);
 
     public Task<int> CountDone(CancellationToken cancellationToken)
@@ -51,8 +51,39 @@ public class IntentionService(ApplicationDbContext dbContext)
 
     public async Task MarkDone(IntentionId id, UserId user, CancellationToken cancellationToken)
     {
-        var intention = await dbContext.Intentions.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-        intention?.MarkDone(DateTimeOffset.UtcNow, user);
+        var intentions = await dbContext.Intentions
+            .Where(x => x.Id == id && x.DoneAt == null)
+            .ToListAsync(cancellationToken);
+
+        await MarkDone(intentions, DateTimeOffset.UtcNow, user, cancellationToken);
+    }
+
+    public async Task MarkDoneFor(
+        string doneWhenEvent, DateTimeOffset at, UserId? by, CancellationToken cancellationToken)
+    {
+        var intentions = await dbContext.Intentions
+            .Where(x => x.DoneWhenEvent == doneWhenEvent && x.DoneAt == null)
+            .ToListAsync(cancellationToken);
+
+        await MarkDone(intentions, at, by, cancellationToken);
+    }
+
+    // Only the latest KeepDone done intentions are kept, counting the ones marked now.
+    private async Task MarkDone(
+        List<Intention> intentions, DateTimeOffset at, UserId? by, CancellationToken cancellationToken)
+    {
+        if (intentions.Count == 0)
+            return;
+
+        var old = await dbContext.Intentions
+            .Where(x => x.DoneAt != null)
+            .OrderByDescending(x => x.DoneAt)
+            .Skip(Math.Max(KeepDone - intentions.Count, 0))
+            .ToListAsync(cancellationToken);
+        dbContext.Intentions.RemoveRange(old);
+
+        foreach (var intention in intentions)
+            intention.MarkDone(at, by);
     }
 
     public async Task Release(IntentionId id, UserId user, CancellationToken cancellationToken)

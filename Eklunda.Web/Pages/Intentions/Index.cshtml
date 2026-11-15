@@ -27,10 +27,10 @@ else
         @foreach (var intention in Model.Open)
         {
             var mine = intention.CreatedBy == Model.Me;
-            <li class="intention">
+            <li class="intention@(mine ? " intention-mine" : "")">
                 <div class="intention-body">
                     <span class="intention-text">@intention.Description</span>
-                    <small>@Model.Who(intention.CreatedBy) · @IndexModel.When(intention.CreatedDate)</small>
+                    <small><span class="intention-who">@Model.Who(intention.CreatedBy)</span> · @IndexModel.When(intention.CreatedDate)</small>
                 </div>
                 @* Hidden fields: the buttons' formaction drops route values from the form's action. *@
                 <form method="post" class="intention-actions">

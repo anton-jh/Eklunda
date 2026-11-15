@@ -565,3 +565,23 @@ input::placeholder {
 .intentions-done .intention-text {
     color: var(--muted);
 }
+
+.intention-mine {
+    position: relative;
+}
+
+.intention-mine::before {
+    content: "";
+    position: absolute;
+    top: .625rem;
+    bottom: .625rem;
+    left: -1rem;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--accent);
+}
+
+.intention-mine .intention-who {
+    color: var(--accent);
+    font-weight: 600;
+}

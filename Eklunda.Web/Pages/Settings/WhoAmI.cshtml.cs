@@ -42,6 +42,6 @@ public class WhoAmIModel(UserService userService, IUnitOfWork unitOfWork) : Page
     private async Task<IActionResult> SignIn(User user)
     {
         await UserAuthentication.SignIn(HttpContext, user);
-        return LocalRedirect(Url.IsLocalUrl(ReturnUrl) ? ReturnUrl : "/");
+        return RedirectToPage("Notifications", new { ReturnUrl });
     }
 }
