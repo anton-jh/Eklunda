@@ -54,6 +54,9 @@ namespace Eklunda.Web.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("AmountLeftInFire")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("LitFire")
                         .HasColumnType("boolean");
 

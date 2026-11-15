@@ -261,6 +261,10 @@ legend + .temp {
     padding-bottom: .75rem;
 }
 
+.toggles-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
 .toggle {
     position: relative;
 }

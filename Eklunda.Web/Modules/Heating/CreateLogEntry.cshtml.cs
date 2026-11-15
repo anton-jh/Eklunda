@@ -1,3 +1,4 @@
+using Eklunda.Web.Modules.Heating.Models;
 using Eklunda.Web.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -23,12 +24,13 @@ public class CreateLogEntryModel(
         int? tempBoiler,
         bool stokedFire,
         bool litFire,
+        AmountLeftInFire? amountLeftInFire,
         string? notes,
         CancellationToken cancellationToken)
     {
         await heatingService.CreateLogEntry(
             tempTankUpper, tempTankMid, tempTankLower, tempBoiler,
-            stokedFire, litFire, notes?.Trim() ?? "");
+            stokedFire, litFire, amountLeftInFire, notes?.Trim() ?? "");
 
         await unitOfWork.CommitAsync(cancellationToken);
 

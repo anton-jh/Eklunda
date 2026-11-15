@@ -1,7 +1,22 @@
 @page
 @model Eklunda.Web.Modules.Heating.CreateLogEntryModel
+@using Eklunda.Web.Modules.Heating.Models
 @{
     ViewData["Title"] = "Ny post";
+}
+
+@section Scripts {
+    <script>
+        // Radios can't normally be unchecked; let a second tap clear the choice (the field is optional).
+        document.querySelectorAll("[data-clearable] input[type=radio]").forEach(radio => {
+            let wasChecked = false;
+            radio.addEventListener("pointerdown", () => wasChecked = radio.checked);
+            radio.addEventListener("click", () => {
+                if (wasChecked) radio.checked = false;
+                wasChecked = false;
+            });
+        });
+    </script>
 }
 <nav class="topnav">
     <a asp-page="Log">‹ Logg</a>
@@ -44,6 +59,25 @@
             <input name="tempBoiler" type="number" inputmode="numeric" min="0" max="150" />
             <em>°C</em>
         </label>
+    </fieldset>
+
+    <fieldset>
+        <legend>Kvar i pannan</legend>
+        @* Optional: tap the selected option again to clear it. *@
+        <div class="toggles toggles-3" data-clearable>
+            <label class="toggle">
+                <input name="amountLeftInFire" type="radio" value="@AmountLeftInFire.None" />
+                <span>Inget</span>
+            </label>
+            <label class="toggle">
+                <input name="amountLeftInFire" type="radio" value="@AmountLeftInFire.Some" />
+                <span>Lite</span>
+            </label>
+            <label class="toggle">
+                <input name="amountLeftInFire" type="radio" value="@AmountLeftInFire.Much" />
+                <span>Mycket</span>
+            </label>
+        </div>
     </fieldset>
 
     <fieldset>

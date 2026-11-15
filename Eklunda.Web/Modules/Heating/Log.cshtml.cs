@@ -63,6 +63,14 @@ public partial class LogModel(HeatingService heatingService) : PageModel
 
     public static string Temp(int? value) => value?.ToString(Swedish) ?? "–";
 
+    public static string AmountLeft(AmountLeftInFire amount) => amount switch
+    {
+        AmountLeftInFire.None => "inget",
+        AmountLeftInFire.Some => "lite",
+        AmountLeftInFire.Much => "mycket",
+        _ => amount.ToString()
+    };
+
     public static string Duration(TimeSpan span)
     {
         var minutes = (int)Math.Round(span.Duration().TotalMinutes);

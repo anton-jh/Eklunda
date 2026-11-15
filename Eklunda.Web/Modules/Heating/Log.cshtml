@@ -54,7 +54,7 @@ else
                     <li class="entry">
                         <time datetime="@entry.Timestamp.ToString("O")">@entry.Timestamp.ToLocalTime().ToString("HH:mm")</time>
                         <div class="entry-body">
-                            @if (hasTank || entry.TempTankBoiler is not null)
+                            @if (hasTank || entry.TempTankBoiler is not null || entry.AmountLeftInFire is not null)
                             {
                                 <div class="readings">
                                     @if (hasTank)
@@ -64,6 +64,10 @@ else
                                     @if (entry.TempTankBoiler is not null)
                                     {
                                         <span><small>Panna</small> @(entry.TempTankBoiler)°</span>
+                                    }
+                                    @if (entry.AmountLeftInFire is { } amountLeft)
+                                    {
+                                        <span><small>Kvar</small> @LogModel.AmountLeft(amountLeft)</span>
                                     }
                                 </div>
                             }

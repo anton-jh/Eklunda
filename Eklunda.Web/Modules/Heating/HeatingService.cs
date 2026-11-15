@@ -17,13 +17,14 @@ public class HeatingService(
         int? tempBoiler,
         bool stokedFire,
         bool litFire,
+        AmountLeftInFire? amountLeftInFire,
         string notes)
     {
         var userId = UserId.Example1;
 
         var entry = new HeatingLogEntry(DateTimeOffset.UtcNow,
             tempTankUpper, tempTankMid, tempTankLower, tempBoiler,
-            litFire, stokedFire, notes);
+            litFire, stokedFire, amountLeftInFire, notes);
 
         dbContext.HeatingLogEntries.Add(entry);
 

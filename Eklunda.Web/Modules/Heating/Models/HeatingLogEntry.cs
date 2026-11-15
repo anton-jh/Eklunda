@@ -8,6 +8,7 @@ public record HeatingLogEntry(
     int? TempTankBoiler,
     bool LitFire,
     bool StokedFire,
+    AmountLeftInFire? AmountLeftInFire,
     string Notes)
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
