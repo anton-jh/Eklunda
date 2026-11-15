@@ -1,13 +1,19 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Eklunda.Web.Core.Users;
 using Eklunda.Web.Modules.Heating.Models;
+using Eklunda.Web.Shared;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Eklunda.Web.Modules.Heating;
 
-public partial class LogModel(HeatingService heatingService) : PageModel
+public partial class LogModel(
+    HeatingService heatingService,
+    UserService userService,
+    ICurrentUser currentUser)
+    : PageModel
 {
-    private static readonly CultureInfo Swedish = CultureInfo.GetCultureInfo("sv-SE");
+    public const string SavedKey = "HeatingLogSaved";
 
     public DateOnly WeekStart { get; private set; }
     public DateOnly WeekEnd => WeekStart.AddDays(6);
@@ -16,9 +22,19 @@ public partial class LogModel(HeatingService heatingService) : PageModel
     public string PreviousWeek => FormatWeek(WeekStart.AddDays(-7));
     public string? NextWeek => IsCurrentWeek ? null : FormatWeek(WeekStart.AddDays(7));
     public List<LogDay> Days { get; private set; } = [];
+    public IReadOnlyDictionary<UserId, string> Names { get; private set; } = new Dictionary<UserId, string>();
+    public UserId Me => currentUser.Id;
+
+    public bool Saved { get; private set; }
+
+    public UserId? NextCheckHolder { get; private set; }
 
     public async Task OnGet(string? week, CancellationToken cancellationToken)
     {
+        Saved = TempData[SavedKey] is true;
+        Names = await userService.GetNames(cancellationToken);
+        NextCheckHolder = await heatingService.GetNextCheckHolder(cancellationToken);
+
         var currentWeekStart = StartOfWeek(Today);
 
         WeekStart = TryParseWeek(week, out var parsed) && parsed < currentWeekStart
@@ -36,6 +52,8 @@ public partial class LogModel(HeatingService heatingService) : PageModel
     }
 
     public record LogDay(DateOnly Date, List<HeatingLogEntry> Entries);
+
+    public string Who(UserId? id) => Names.NameOf(id, Me);
 
     // --- Formatting -------------------------------------------------------------------------
 
@@ -57,19 +75,9 @@ public partial class LogModel(HeatingService heatingService) : PageModel
         if (date == Today) return "Idag";
         if (date == Today.AddDays(-1)) return "Igår";
 
-        var weekday = Swedish.DateTimeFormat.GetDayName(date.DayOfWeek);
-        return $"{char.ToUpper(weekday[0], Swedish)}{weekday[1..]} {date.Day} {Month(date)}";
+        var weekday = Formats.Swedish.DateTimeFormat.GetDayName(date.DayOfWeek);
+        return $"{char.ToUpper(weekday[0], Formats.Swedish)}{weekday[1..]} {date.Day} {Month(date)}";
     }
-
-    public static string Temp(int? value) => value?.ToString(Swedish) ?? "–";
-
-    public static string AmountLeft(AmountLeftInFire amount) => amount switch
-    {
-        AmountLeftInFire.None => "inget",
-        AmountLeftInFire.Some => "lite",
-        AmountLeftInFire.Much => "mycket",
-        _ => amount.ToString()
-    };
 
     public static string Duration(TimeSpan span)
     {
@@ -80,7 +88,7 @@ public partial class LogModel(HeatingService heatingService) : PageModel
     }
 
     private static string Month(DateOnly date)
-        => Swedish.DateTimeFormat.GetAbbreviatedMonthName(date.Month).TrimEnd('.');
+        => Formats.Swedish.DateTimeFormat.GetAbbreviatedMonthName(date.Month).TrimEnd('.');
 
     // --- Week helpers -----------------------------------------------------------------------
 

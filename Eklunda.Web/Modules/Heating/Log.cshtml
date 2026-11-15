@@ -51,7 +51,7 @@ else
                             <span>@LogModel.Duration(entry.Timestamp - day.Entries[i - 1].Timestamp)</span>
                         </li>
                     }
-                    var hasTank = entry.TempTankUpper is not null || entry.TempTankMid is not null || entry.TempTankLower is not null;
+                    var hasTank = HeatingFormat.HasTank(entry);
                     <li class="entry">
                         <time datetime="@entry.Timestamp.ToString("O")">@entry.Timestamp.ToLocalTime().ToString("HH:mm")</time>
                         <div class="entry-body">
@@ -60,7 +60,7 @@ else
                                 <div class="readings">
                                     @if (hasTank)
                                     {
-                                        <span><small>Tank</small> @LogModel.Temp(entry.TempTankUpper) · @LogModel.Temp(entry.TempTankMid) · @LogModel.Temp(entry.TempTankLower)°</span>
+                                        <span><small>Tank</small> @HeatingFormat.Temp(entry.TempTankUpper) · @HeatingFormat.Temp(entry.TempTankMid) · @HeatingFormat.Temp(entry.TempTankLower)°</span>
                                     }
                                     @if (entry.TempTankBoiler is not null)
                                     {
@@ -68,7 +68,7 @@ else
                                     }
                                     @if (entry.AmountLeftInFire is { } amountLeft)
                                     {
-                                        <span><small>Kvar</small> @LogModel.AmountLeft(amountLeft)</span>
+                                        <span><small>Kvar</small> @HeatingFormat.AmountLeft(amountLeft)</span>
                                     }
                                 </div>
                             }
@@ -80,12 +80,31 @@ else
                                     @if (!string.IsNullOrWhiteSpace(entry.Notes)) { <span class="notes">@entry.Notes</span> }
                                 </div>
                             }
+                            @if (entry.CreatedBy is { } createdBy)
+                            {
+                                <div class="entry-by">@Model.Who(createdBy)</div>
+                            }
                         </div>
                     </li>
                 }
             </ol>
         </section>
     }
+}
+
+@if (Model.IsCurrentWeek)
+{
+    <div class="after-log">
+        @if (Model.Saved)
+        {
+            <p class="toast" role="status">Sparat ✓</p>
+        }
+
+        @if (Model.NextCheckHolder is { } holder)
+        {
+            <p class="next-check" role="status">@Model.Who(holder) tar nästa koll.</p>
+        }
+    </div>
 }
 
 @* Single pager, pinned to the bottom of the viewport while scrolling. *@

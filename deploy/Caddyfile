@@ -1,0 +1,18 @@
+# Caddy in front of Eklunda on the Raspberry Pi.
+# Copy to /etc/caddy/Caddyfile and replace the address with the Pi's fixed LAN address
+# (and/or a name your router resolves, e.g. eklunda.home). Then: sudo systemctl reload caddy
+#
+# `tls internal` makes Caddy its own certificate authority. Its root certificate must be
+# installed once on each phone; see deploy/README.md.
+
+https://192.168.1.50, https://eklunda.home {
+	tls internal
+
+	# The app listens on localhost only (see eklunda.service).
+	reverse_proxy localhost:5000
+}
+
+# Plain http goes to https, so old bookmarks keep working.
+http://192.168.1.50, http://eklunda.home {
+	redir https://{host}{uri} permanent
+}

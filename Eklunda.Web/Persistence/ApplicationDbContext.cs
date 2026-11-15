@@ -1,4 +1,5 @@
 ﻿using Eklunda.Web.Core.Intentions;
+using Eklunda.Web.Core.Notifications;
 using Eklunda.Web.Core.Users;
 using Eklunda.Web.Modules.Heating.Models;
 using Eklunda.Web.Shared;
@@ -17,20 +18,46 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WrappedGuidConversion<UserId>();
     }
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>(b =>
+        {
+            b.Property(x => x.Name).HasMaxLength(UserService.MaxNameLength);
+        });
+
+        modelBuilder.Entity<Intention>(b =>
+        {
+            b.Property(x => x.Description).HasMaxLength(IntentionService.MaxDescriptionLength);
+            b.HasIndex(x => new { x.DoneWhenEvent, x.DoneAt });
+        });
+
+        modelBuilder.Entity<DevicePushSubscription>(b =>
+        {
+            b.HasIndex(x => x.Endpoint).IsUnique();
+        });
+
+        modelBuilder.Entity<VapidKeys>(b =>
+        {
+            b.Property(x => x.Id).ValueGeneratedNever();
+        });
+    }
+
     public Task CommitAsync(CancellationToken cancellationToken)
     {
         return SaveChangesAsync(cancellationToken);
     }
 
     // Core
+    public required DbSet<User> Users { get; init; }
     public required DbSet<Intention> Intentions { get; init; }
+    public required DbSet<DevicePushSubscription> PushSubscriptions { get; init; }
+    public required DbSet<VapidKeys> VapidKeys { get; init; }
 
     // Heating
     public required DbSet<HeatingLogEntry> HeatingLogEntries { get; init; }
 }
 
 
-// not sure if this works
 public class SimpleValueTypeConverter<TModel, TProvider> : ValueConverter<TModel?, TProvider?>
     where TModel : class
 {

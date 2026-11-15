@@ -10,11 +10,13 @@ public class IntentionCompletionEventListener(
     public async Task Process(IEvent e)
     {
         var eventString = e.Serialize();
-        var intentions = await dbContext.Intentions.Where(x => x.DoneWhenEvent == eventString).ToListAsync();
+        var intentions = await dbContext.Intentions
+            .Where(x => x.DoneWhenEvent == eventString && x.DoneAt == null)
+            .ToListAsync();
 
         foreach (var intention in intentions)
         {
-            intention.Done = true;
+            intention.MarkDone(e.OccurredAt, e.TriggeredBy);
         }
     }
 }

@@ -1,0 +1,28 @@
+@page
+@model Eklunda.Web.Pages.Settings.WhoAmIModel
+@using Eklunda.Web.Core.Users
+@{
+    ViewData["Title"] = "Vem är du?";
+    ViewData["HideMenu"] = true;
+}
+
+<div class="whoami">
+    <h1>Vem är du?</h1>
+
+    @if (Model.Users.Count > 0)
+    {
+        <form method="post" asp-page-handler="Pick" asp-route-returnUrl="@Model.ReturnUrl" class="choices">
+            @foreach (var user in Model.Users)
+            {
+                <button type="submit" name="id" value="@user.Id.Value">@user.Name</button>
+            }
+        </form>
+    }
+
+    <form method="post" asp-page-handler="Create" asp-route-returnUrl="@Model.ReturnUrl" class="inline-form" autocomplete="off">
+        <label for="name" class="visually-hidden">Namn</label>
+        <input id="name" name="name" maxlength="@UserService.MaxNameLength" required
+               placeholder="@(Model.Users.Count > 0 ? "Någon annan…" : "Ditt namn")" />
+        <button type="submit">Fortsätt</button>
+    </form>
+</div>

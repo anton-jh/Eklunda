@@ -24,13 +24,8 @@
 
 <header class="page-header">
     <h1>Uppvärmningslogg</h1>
-    <p class="now">@DateTime.Now.ToString("ddd d MMM, HH:mm", System.Globalization.CultureInfo.GetCultureInfo("sv-SE"))</p>
+    <p class="now">@DateTime.Now.ToString("ddd d MMM, HH:mm", Eklunda.Web.Shared.Formats.Swedish)</p>
 </header>
-
-@if (Model.Saved)
-{
-    <p class="toast" role="status">Sparat ✓</p>
-}
 
 <form method="post" autocomplete="off">
     <fieldset>
@@ -97,6 +92,20 @@
     <fieldset>
         <legend><label for="notes">Övrigt</label></legend>
         <textarea id="notes" name="notes" rows="3" placeholder="Valfritt"></textarea>
+    </fieldset>
+
+    <fieldset>
+        <legend>Tar du nästa koll av uppvärmningen?</legend>
+        <div class="toggles">
+            <label class="toggle">
+                <input name="takeNext" type="radio" value="true" required />
+                <span>Ja, jag tar nästa</span>
+            </label>
+            <label class="toggle">
+                <input name="takeNext" type="radio" value="false" required />
+                <span>Nej</span>
+            </label>
+        </div>
     </fieldset>
 
     <div class="actions">

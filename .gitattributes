@@ -1,7 +1,10 @@
 ###############################################################################
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
-* text=auto
+* text=auto eol=crlf
+
+# Runs on the Raspberry Pi (Linux).
+deploy/** text eol=lf
 
 ###############################################################################
 # Set default behavior for command prompt diff.

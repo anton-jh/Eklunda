@@ -1,3 +1,4 @@
+using Eklunda.Web.Core.Users;
 using Eklunda.Web.Modules.Heating.Models;
 using Eklunda.Web.Shared;
 using Microsoft.AspNetCore.Mvc;
@@ -7,12 +8,11 @@ namespace Eklunda.Web.Modules.Heating;
 
 public class CreateLogEntryModel(
     HeatingService heatingService,
+    HeatingNotifier heatingNotifier,
+    ICurrentUser currentUser,
     IUnitOfWork unitOfWork)
     : PageModel
 {
-    [TempData]
-    public bool Saved { get; set; }
-
     public void OnGet()
     {
     }
@@ -26,15 +26,22 @@ public class CreateLogEntryModel(
         bool litFire,
         AmountLeftInFire? amountLeftInFire,
         string? notes,
+        bool? takeNext,
         CancellationToken cancellationToken)
     {
-        await heatingService.CreateLogEntry(
+        if (takeNext is not { } answer)
+            return BadRequest();
+
+        var entry = await heatingService.CreateLogEntry(
+            currentUser.Id,
             tempTankUpper, tempTankMid, tempTankLower, tempBoiler,
-            stokedFire, litFire, amountLeftInFire, notes?.Trim() ?? "");
+            stokedFire, litFire, amountLeftInFire, notes?.Trim() ?? "",
+            answer);
 
         await unitOfWork.CommitAsync(cancellationToken);
+        await heatingNotifier.NotifyNewEntry(entry, cancellationToken);
 
-        Saved = true;
+        TempData[LogModel.SavedKey] = true;
         return RedirectToPage("Log");
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Eklunda.Web.Modules.Heating.Models;
+﻿using Eklunda.Web.Core.Users;
+
+namespace Eklunda.Web.Modules.Heating.Models;
 
 public record HeatingLogEntry(
     DateTimeOffset Timestamp,
@@ -9,7 +11,8 @@ public record HeatingLogEntry(
     bool LitFire,
     bool StokedFire,
     AmountLeftInFire? AmountLeftInFire,
-    string Notes)
+    string Notes,
+    UserId? CreatedBy)
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
 }

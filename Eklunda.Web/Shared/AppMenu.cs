@@ -13,6 +13,11 @@ public static class AppMenu
             new("Ny post", "/Modules/Heating/CreateLogEntry"),
             new("Logg", "/Modules/Heating/Log"),
         ]),
+        new("Allmänt",
+        [
+            new("Avsikter", "/Pages/Intentions/Index"),
+            new("Inställningar", "/Pages/Settings/Index"),
+        ]),
     ];
 }
 

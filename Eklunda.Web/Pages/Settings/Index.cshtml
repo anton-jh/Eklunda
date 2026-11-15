@@ -1,0 +1,77 @@
+@page
+@model Eklunda.Web.Pages.Settings.IndexModel
+@using Eklunda.Web.Core.Users
+@{
+    ViewData["Title"] = "Inställningar";
+}
+
+@section Scripts {
+    <script>
+        (() => {
+            const box = document.querySelector("[data-push]");
+            const status = box.querySelector("[data-push-status]");
+            const enable = box.querySelector("[data-push-enable]");
+            const disable = box.querySelector("[data-push-disable]");
+            const push = window.eklundaPush;
+
+            async function render() {
+                enable.hidden = disable.hidden = true;
+                const state = await push.state();
+                status.textContent = {
+                    unsupported: "Stöds inte",
+                    denied: "Blockerade i webbläsaren",
+                    off: "Av",
+                    on: "På ✓"
+                }[state];
+                enable.hidden = state !== "off";
+                disable.hidden = state !== "on";
+            }
+
+            enable.addEventListener("click", async () => {
+                enable.disabled = true;
+                try { await push.enable(box.dataset.push); }
+                catch (e) { console.error(e); }
+                enable.disabled = false;
+                await render();
+            });
+
+            disable.addEventListener("click", async () => {
+                disable.disabled = true;
+                try { await push.disable(); }
+                catch (e) { console.error(e); }
+                disable.disabled = false;
+                await render();
+            });
+
+            render();
+        })();
+    </script>
+}
+
+<header class="page-header">
+    <h1>Inställningar</h1>
+</header>
+
+@if (Model.Message is { } message)
+{
+    <p class="toast" role="status">@message</p>
+}
+
+<section class="panel">
+    <h2>Namn</h2>
+    <form method="post" asp-page-handler="Rename" class="inline-form" autocomplete="off">
+        <label for="name" class="visually-hidden">Namn</label>
+        <input id="name" name="name" value="@Model.Name" maxlength="@UserService.MaxNameLength" required />
+        <button type="submit">Spara</button>
+    </form>
+    <form method="post" asp-page-handler="SwitchUser">
+        <button type="submit" class="link-button">Byt användare</button>
+    </form>
+</section>
+
+<section class="panel" data-push="@Model.PushPublicKey">
+    <h2>Notiser</h2>
+    <p class="hint" data-push-status>…</p>
+    <button type="button" class="secondary-button" data-push-enable hidden>Slå på notiser</button>
+    <button type="button" class="link-button" data-push-disable hidden>Stäng av</button>
+</section>

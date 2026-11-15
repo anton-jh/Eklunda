@@ -1,0 +1,71 @@
+@page
+@model Eklunda.Web.Pages.Intentions.IndexModel
+@using Eklunda.Web.Core.Intentions
+@using Eklunda.Web.Core.Users
+@{
+    ViewData["Title"] = "Avsikter";
+}
+
+<header class="page-header">
+    <h1>Avsikter</h1>
+</header>
+
+<form method="post" asp-page-handler="Create" asp-route-showDone="@Model.ShowDone" class="inline-form" autocomplete="off">
+    <label for="description" class="visually-hidden">Jag tar…</label>
+    <input id="description" name="description" maxlength="@IntentionService.MaxDescriptionLength" required
+           placeholder="Jag tar…" />
+    <button type="submit">Lägg till</button>
+</form>
+
+@if (Model.Open.Count == 0)
+{
+    <p class="empty">Inga öppna avsikter.</p>
+}
+else
+{
+    <ul class="intentions">
+        @foreach (var intention in Model.Open)
+        {
+            var mine = intention.CreatedBy == Model.Me;
+            <li class="intention">
+                <div class="intention-body">
+                    <span class="intention-text">@intention.Description</span>
+                    <small>@Model.Who(intention.CreatedBy) · @IndexModel.When(intention.CreatedDate)</small>
+                </div>
+                @* Hidden fields: the buttons' formaction drops route values from the form's action. *@
+                <form method="post" class="intention-actions">
+                    <input type="hidden" name="id" value="@intention.Id.Value" />
+                    <input type="hidden" name="showDone" value="@Model.ShowDone.ToString().ToLowerInvariant()" />
+                    @if (mine)
+                    {
+                        <button type="submit" asp-page-handler="Release" class="link-button">Släpp</button>
+                    }
+                    <button type="submit" asp-page-handler="Done" class="chip-button">Klar</button>
+                </form>
+            </li>
+        }
+    </ul>
+}
+
+@if (Model.DoneCount > 0)
+{
+    if (!Model.ShowDone)
+    {
+        <p class="jump"><a asp-route-showDone="true">Visa klara (@Model.DoneCount)</a></p>
+    }
+    else
+    {
+        <p class="jump"><a asp-route-showDone="">Dölj klara</a></p>
+        <ul class="intentions intentions-done">
+            @foreach (var intention in Model.Done)
+            {
+                <li class="intention">
+                    <div class="intention-body">
+                        <span class="intention-text">@intention.Description</span>
+                        <small>@Model.Who(intention.CreatedBy) · klar @IndexModel.When(intention.DoneAt!.Value)</small>
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+}
