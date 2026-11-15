@@ -1,13 +1,17 @@
-/* Week pager */
+/* Week pager: sticks to the bottom of the viewport while the log scrolls under it. */
 .weeknav {
+    position: sticky;
+    bottom: calc(.75rem + env(safe-area-inset-bottom));
+    z-index: 5;
     display: flex;
     align-items: center;
     gap: .5rem;
-    margin-bottom: 1.25rem;
+    margin-top: 1.5rem;
     padding: .25rem;
     border: 1px solid var(--border);
     border-radius: .875rem;
     background: var(--surface);
+    box-shadow: 0 0 0 .75rem var(--bg), 0 -.5rem 1.5rem .75rem var(--bg);
 }
 
 .weeknav-step {
@@ -41,12 +45,8 @@ span.weeknav-step {
     font-size: .8125rem;
 }
 
-main > .weeknav:last-child {
-    margin: 1.5rem 0 0;
-}
-
 .jump {
-    margin: -.5rem 0 1.25rem;
+    margin: 0 0 1.25rem;
     text-align: center;
     font-size: .875rem;
 }

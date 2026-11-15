@@ -3,25 +3,6 @@
 @using Eklunda.Web.Modules.Heating
 @{
     ViewData["Title"] = "Logg";
-
-    async Task WeekNav()
-    {
-        <nav class="weeknav" aria-label="Veckor">
-            <a class="weeknav-step" asp-route-week="@Model.PreviousWeek" aria-label="Föregående vecka">‹</a>
-            <div class="weeknav-label">
-                <strong>Vecka @Model.WeekNumber</strong>
-                <span>@Model.WeekRange</span>
-            </div>
-            @if (Model.NextWeek is { } next)
-            {
-                <a class="weeknav-step" asp-route-week="@next" aria-label="Nästa vecka">›</a>
-            }
-            else
-            {
-                <span class="weeknav-step" aria-hidden="true">›</span>
-            }
-        </nav>
-    }
 }
 
 @section Styles {
@@ -39,8 +20,6 @@
     <h1>Uppvärmningslogg</h1>
     <a class="header-action" asp-page="CreateLogEntry">+ Ny</a>
 </header>
-
-@{ await WeekNav(); }
 
 @if (!Model.IsCurrentWeek)
 {
@@ -102,10 +81,21 @@ else
             </ol>
         </section>
     }
-
-    // Repeat the pager at the bottom only when the week is long enough to scroll.
-    if (Model.Days.Sum(x => x.Entries.Count) > 6)
-    {
-        await WeekNav();
-    }
 }
+
+@* Single pager, pinned to the bottom of the viewport while scrolling. *@
+<nav class="weeknav" aria-label="Veckor">
+    <a class="weeknav-step" asp-route-week="@Model.PreviousWeek" aria-label="Föregående vecka">‹</a>
+    <div class="weeknav-label">
+        <strong>Vecka @Model.WeekNumber</strong>
+        <span>@Model.WeekRange</span>
+    </div>
+    @if (Model.NextWeek is { } next)
+    {
+        <a class="weeknav-step" asp-route-week="@next" aria-label="Nästa vecka">›</a>
+    }
+    else
+    {
+        <span class="weeknav-step" aria-hidden="true">›</span>
+    }
+</nav>
