@@ -1,0 +1,88 @@
+@page
+@model Eklunda.Web.Modules.Heating.LogModel
+@using Eklunda.Web.Modules.Heating
+@{
+    ViewData["Title"] = "Logg";
+
+    async Task WeekNav()
+    {
+        <nav class="weeknav" aria-label="Veckor">
+            <a class="weeknav-step" asp-route-week="@Model.PreviousWeek" aria-label="Föregående vecka">‹</a>
+            <div class="weeknav-label">
+                <strong>Vecka @Model.WeekNumber</strong>
+                <span>@Model.WeekRange</span>
+            </div>
+            @if (Model.NextWeek is { } next)
+            {
+                <a class="weeknav-step" asp-route-week="@next" aria-label="Nästa vecka">›</a>
+            }
+            else
+            {
+                <span class="weeknav-step" aria-hidden="true">›</span>
+            }
+        </nav>
+    }
+}
+
+<header>
+    <h1>Uppvärmningslogg</h1>
+    <a class="header-action" asp-page="CreateLogEntry">+ Ny</a>
+</header>
+
+@{ await WeekNav(); }
+
+@if (!Model.IsCurrentWeek)
+{
+    <p class="jump"><a asp-route-week="">Till denna vecka</a></p>
+}
+
+@if (Model.Days.Count == 0)
+{
+    <p class="empty">Inga poster den här veckan.</p>
+}
+else
+{
+    foreach (var day in Model.Days)
+    {
+        <section class="day">
+            <h2>
+                <span>@LogModel.DayLabel(day.Date)</span>
+                <small>@day.Entries.Count st</small>
+            </h2>
+            <ol class="entries">
+                @foreach (var entry in day.Entries)
+                {
+                    var hasTank = entry.TempTankUpper is not null || entry.TempTankMid is not null || entry.TempTankLower is not null;
+                    <li class="entry">
+                        <time datetime="@entry.Timestamp.ToString("O")">@entry.Timestamp.ToString("HH:mm")</time>
+                        <div class="entry-body">
+                            @if (hasTank || entry.TempTankBoiler is not null)
+                            {
+                                <div class="readings">
+                                    @if (hasTank)
+                                    {
+                                        <span><small>Tank</small> @LogModel.Temp(entry.TempTankUpper) · @LogModel.Temp(entry.TempTankMid) · @LogModel.Temp(entry.TempTankLower)°</span>
+                                    }
+                                    @if (entry.TempTankBoiler is not null)
+                                    {
+                                        <span><small>Panna</small> @(entry.TempTankBoiler)°</span>
+                                    }
+                                </div>
+                            }
+                            @if (entry.LitFire || entry.StokedFire || !string.IsNullOrWhiteSpace(entry.Notes))
+                            {
+                                <div class="entry-extra">
+                                    @if (entry.LitFire) { <span class="flag">Tänt</span> }
+                                    @if (entry.StokedFire) { <span class="flag">Lagt på</span> }
+                                    @if (!string.IsNullOrWhiteSpace(entry.Notes)) { <span class="notes">@entry.Notes</span> }
+                                </div>
+                            }
+                        </div>
+                    </li>
+                }
+            </ol>
+        </section>
+    }
+
+    await WeekNav();
+}
