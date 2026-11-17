@@ -12,7 +12,7 @@ public class HeatingService(
     IntentionService intentionService,
     ApplicationDbContext dbContext)
 {
-    public const string NextCheckDescription = "Kolla uppvärmningen nästa gång";
+    public const string NextCheckDescription = "Kolla pannan nästa gång";
 
     public async Task<HeatingLogEntry> CreateLogEntry(UserId userId, LogEntryValues values)
     {
