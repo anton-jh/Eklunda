@@ -42,11 +42,11 @@ public class IntentionService(ApplicationDbContext dbContext)
     }
 
     // First one wins: returns the existing open intention if someone already took it.
-    public async Task<Intention> TakeFirst(
+    public async Task<(Intention Intention, bool Created)> TakeFirst(
         string description, UserId user, string doneWhenEvent, CancellationToken cancellationToken)
     {
-        return await GetOpenFor(doneWhenEvent, cancellationToken)
-            ?? Create(description, user, doneWhenEvent);
+        var open = await GetOpenFor(doneWhenEvent, cancellationToken);
+        return open is null ? (Create(description, user, doneWhenEvent), true) : (open, false);
     }
 
     public async Task MarkDone(IntentionId id, UserId user, CancellationToken cancellationToken)

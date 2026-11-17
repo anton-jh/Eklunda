@@ -28,16 +28,12 @@ public class LogEntryModel(
     public async Task<IActionResult> OnPost(
         Guid? id,
         LogEntryValues values,
-        bool? takeNext,
         CancellationToken cancellationToken)
     {
         HeatingLogEntry? entry;
         if (id is null)
         {
-            if (takeNext is not { } answer)
-                return BadRequest();
-
-            entry = await heatingService.CreateLogEntry(currentUser.Id, values, answer);
+            entry = await heatingService.CreateLogEntry(currentUser.Id, values);
             await unitOfWork.CommitAsync(cancellationToken);
             await heatingNotifier.NotifyNewEntry(entry, cancellationToken);
         }

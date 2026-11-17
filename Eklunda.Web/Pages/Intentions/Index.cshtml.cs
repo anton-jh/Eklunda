@@ -8,6 +8,7 @@ namespace Eklunda.Web.Pages.Intentions;
 
 public class IndexModel(
     IntentionService intentionService,
+    IntentionNotifier intentionNotifier,
     UserService userService,
     ICurrentUser currentUser,
     IUnitOfWork unitOfWork)
@@ -35,8 +36,9 @@ public class IndexModel(
     {
         if (!string.IsNullOrWhiteSpace(description))
         {
-            intentionService.Create(description, currentUser.Id);
+            var intention = intentionService.Create(description, currentUser.Id);
             await unitOfWork.CommitAsync(cancellationToken);
+            await intentionNotifier.NotifyCreated(intention, cancellationToken);
         }
 
         return RedirectToPage(new { ShowDone });

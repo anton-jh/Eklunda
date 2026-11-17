@@ -1,15 +1,19 @@
 using System.Globalization;
+using Eklunda.Web.Core.Intentions;
 using Eklunda.Web.Core.Users;
 using Eklunda.Web.Modules.Heating.Models;
 using Eklunda.Web.Shared;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Eklunda.Web.Modules.Heating;
 
 public class LogModel(
     HeatingService heatingService,
+    IntentionNotifier intentionNotifier,
     UserService userService,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IUnitOfWork unitOfWork)
     : PageModel
 {
     public const string ToastKey = "HeatingLogToast";
@@ -40,6 +44,16 @@ public class LogModel(
             : Today;
 
         Entries = await heatingService.GetLogEntries(Day, cancellationToken);
+    }
+
+    public async Task<IActionResult> OnPostTakeNext(string? day, CancellationToken cancellationToken)
+    {
+        var (intention, created) = await heatingService.TakeNext(currentUser.Id, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
+        if (created)
+            await intentionNotifier.NotifyCreated(intention, cancellationToken);
+
+        return RedirectToPage(new { day });
     }
 
     public string Who(UserId? id) => Names.NameOf(id, Me);

@@ -44,8 +44,6 @@ public class HeatingNotifier(
             lines.Add(notes.Length > MaxNotesLength ? notes[..MaxNotesLength] + "…" : notes);
         }
 
-        lines.Add(holder is null ? "Ingen har tagit nästa än." : $"{names.NameOf(holder)} tar nästa.");
-
         var title = $"{names.NameOf(entry.CreatedBy)} loggade uppvärmningen {When(entry.Timestamp)}";
         if (editedBy is not null)
             title += editedBy == entry.CreatedBy ? " (ändrad)" : $" (ändrad av {names.NameOf(editedBy)})";

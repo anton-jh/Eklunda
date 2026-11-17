@@ -91,9 +91,15 @@ else
         <p class="toast" role="status">@toast</p>
     }
 
-    @if (Model.IsToday && Model.NextCheckHolder is { } holder)
+    @if (Model.NextCheckHolder is { } holder)
     {
         <p class="next-check" role="status">@Model.Who(holder) tar nästa koll.</p>
+    }
+    else
+    {
+        <form class="next-check" method="post" asp-page-handler="TakeNext" asp-route-day="@LogModel.DayParam(Model.Day)">
+            <button type="submit" class="chip-button">Jag tar nästa</button>
+        </form>
     }
 </div>
 

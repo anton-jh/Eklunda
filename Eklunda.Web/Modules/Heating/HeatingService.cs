@@ -14,7 +14,7 @@ public class HeatingService(
 {
     public const string NextCheckDescription = "Kolla uppvärmningen nästa gång";
 
-    public async Task<HeatingLogEntry> CreateLogEntry(UserId userId, LogEntryValues values, bool takeNext)
+    public async Task<HeatingLogEntry> CreateLogEntry(UserId userId, LogEntryValues values)
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -25,21 +25,11 @@ public class HeatingService(
 
         await eventService.Publish(new CreatedHeatingLogEntryEvent(userId, now));
 
-        // Created after the event, so it isn't closed by this very entry.
-        if (takeNext)
-            intentionService.Create(NextCheckDescription, userId, CreatedHeatingLogEntryEvent.Key);
-
         return entry;
     }
 
-    // Returns who holds the next check afterwards.
-    public async Task<UserId> TakeNext(UserId userId, CancellationToken cancellationToken)
-    {
-        var intention = await intentionService.TakeFirst(
-            NextCheckDescription, userId, CreatedHeatingLogEntryEvent.Key, cancellationToken);
-
-        return intention.CreatedBy;
-    }
+    public Task<(Intention Intention, bool Created)> TakeNext(UserId userId, CancellationToken cancellationToken)
+        => intentionService.TakeFirst(NextCheckDescription, userId, CreatedHeatingLogEntryEvent.Key, cancellationToken);
 
     public async Task<UserId?> GetNextCheckHolder(CancellationToken cancellationToken)
         => (await intentionService.GetOpenFor(CreatedHeatingLogEntryEvent.Key, cancellationToken))?.CreatedBy;

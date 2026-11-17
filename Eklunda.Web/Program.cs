@@ -37,6 +37,7 @@ builder.Services.AddUsers();
 builder.Services.AddEvents();
 builder.Services.AddPushNotifications();
 builder.Services.AddScoped<IntentionService>();
+builder.Services.AddScoped<IntentionNotifier>();
 builder.Services.AddScoped<HeatingService>();
 builder.Services.AddScoped<HeatingNotifier>();
 
