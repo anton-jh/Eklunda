@@ -6,6 +6,7 @@ services:
     image: eklunda
     restart: unless-stopped
     environment:
+      TZ: Europe/Stockholm
       ConnectionStrings__Default: Host=db;Database=eklunda;Username=eklunda;Password=${POSTGRES_PASSWORD};GSS Encryption Mode=Disable
     volumes:
       - keys:/home/app/.aspnet/DataProtection-Keys
