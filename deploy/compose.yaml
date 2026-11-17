@@ -1,0 +1,36 @@
+# Eklunda and its database. Caddy runs in its own compose project on the shared `web` network.
+# Copy to ~/services/eklunda/ on the Pi, next to a .env file with POSTGRES_PASSWORD=...
+
+services:
+  eklunda:
+    image: eklunda
+    restart: unless-stopped
+    environment:
+      ConnectionStrings__Default: Host=db;Database=eklunda;Username=eklunda;Password=${POSTGRES_PASSWORD};GSS Encryption Mode=Disable
+    volumes:
+      - keys:/home/app/.aspnet/DataProtection-Keys
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [web, default]
+
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: eklunda
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "eklunda"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  keys:
+  db:
+
+networks:
+  web:
+    external: true

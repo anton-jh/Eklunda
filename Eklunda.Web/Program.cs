@@ -27,10 +27,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 builder.Services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
-// Behind Caddy on the Pi, which terminates HTTPS.
+// Behind Caddy on the Pi, which terminates HTTPS. Caddy runs in another container, so its
+// address isn't known up front. The app is only reachable through Caddy.
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
 });
 
 builder.Services.AddUsers();
@@ -42,6 +45,11 @@ builder.Services.AddScoped<HeatingService>();
 builder.Services.AddScoped<HeatingNotifier>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+}
 
 app.UseForwardedHeaders();
 

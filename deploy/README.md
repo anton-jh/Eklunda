@@ -1,61 +1,95 @@
 # Running Eklunda on the Raspberry Pi
 
-Eklunda runs on the local network behind [Caddy](https://caddyserver.com), which serves it over
-HTTPS using its own local certificate authority. HTTPS is needed for push notifications and for
-installing the app on the phone's home screen. Browsers only allow those on secure origins.
+Eklunda runs in Docker on the Pi, behind a shared [Caddy](https://caddyserver.com) container that
+serves every service on the Pi over HTTPS. HTTPS is needed for push notifications and for
+installing the app on the phone's home screen.
 
 ```
-phone ──https──▶ Caddy (:443, tls internal) ──http──▶ Eklunda (localhost:5000) ──▶ PostgreSQL
+phone ──https──▶ Caddy (:443) ──web network──▶ eklunda (:8080) ──▶ db (PostgreSQL)
 ```
 
-## 1. Give the Pi a fixed address
+`skogeklunda.se` is a public DNS record (at Cloudflare) that points at the Pi's local IP.
+Caddy gets a Let's Encrypt certificate for it through a DNS challenge, so the Pi is never
+reachable from the internet and the phones need no extra setup. The app only works on the home
+network. Push notifications arrive anywhere.
 
-Reserve an IP for the Pi in the router (e.g. `192.168.1.50`). If the router can resolve names
-(e.g. `eklunda.home`), set that up too. Use the same address(es) in the `Caddyfile`.
+Images are built on the PC and copied to the Pi. Building on the Pi itself is slow.
 
-## 2. Run the app
+## Once: Cloudflare
 
-Publish for the Pi and copy it over:
+1. Add `skogeklunda.se` to Cloudflare (Free plan). At the registrar, turn off DNSSEC, then
+   switch the domain's nameservers to Cloudflare's.
+2. DNS record: type `A`, name `@`, the Pi's fixed IP, proxy status **DNS only** (grey cloud).
+3. **My Profile → API Tokens → Create Token → Edit zone DNS**. Under **Zone Resources**, pick
+   **Include → Specific zone → skogeklunda.se**.
+
+## Once: Caddy
+
+On the PC, from `deploy/caddy`:
 
 ```bash
-dotnet publish Eklunda.Web -c Release -r linux-arm64 --self-contained -o publish
-rsync -a publish/ pi@192.168.1.50:/opt/eklunda/
+docker buildx build --platform linux/arm64 -t caddy-cloudflare --load .
+docker save -o caddy-cloudflare.tar caddy-cloudflare
+ssh <user>@eklunda.local mkdir -p services/caddy
+scp caddy-cloudflare.tar compose.yaml Caddyfile <user>@eklunda.local:services/caddy/
 ```
 
-Apply database migrations (from the dev machine, pointing at the Pi's database, or using a
-migration bundle: `dotnet ef migrations bundle`). Then install and start the service:
-see `eklunda.service`.
-
-## 3. Caddy
+On the Pi:
 
 ```bash
-sudo apt install caddy
-sudo cp deploy/Caddyfile /etc/caddy/Caddyfile   # edit the addresses first
-sudo systemctl reload caddy
+cd ~/services/caddy
+echo "CLOUDFLARE_API_TOKEN=<token>" > .env && chmod 600 .env
+docker network create web
+docker load -i caddy-cloudflare.tar
+docker compose up -d
 ```
 
-## 4. Trust Caddy's certificate on each phone (once per phone)
+## Deploy Eklunda
 
-Caddy's root certificate is valid for about 10 years. The certificates it signs renew automatically.
+On the PC, from the repository root:
 
-1. Copy the root certificate somewhere the phone can download it, e.g.:
-   ```bash
-   sudo cp /var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt ~/eklunda-root.crt
-   ```
-   (Send it to the phone any way you like. It's a public certificate, not a secret.)
-2. On Android: **Settings → Security & privacy → More security settings → Encryption &
-   credentials → Install a certificate → CA certificate**, then pick the file. Menu names differ
-   a bit between phone makers. Search settings for "CA certificate".
-3. Open `https://192.168.1.50` in Chrome. There should be no warning.
-4. Chrome menu → **Add to home screen / Install app**.
-5. In Eklunda: pick your name, then **Inställningar → Slå på notiser**.
+```bash
+docker buildx build --platform linux/arm64 -f deploy/Dockerfile -t eklunda --load .
+docker save -o eklunda.tar eklunda
+ssh <user>@eklunda.local mkdir -p services/eklunda
+scp eklunda.tar deploy/compose.yaml <user>@eklunda.local:services/eklunda/
+```
+
+On the Pi, the first time:
+
+```bash
+echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" > ~/services/eklunda/.env
+```
+
+Then, on every deploy:
+
+```bash
+cd ~/services/eklunda
+docker load -i eklunda.tar
+docker compose up -d
+```
+
+Database migrations run when the app starts.
+
+## On each phone
+
+1. Open `https://skogeklunda.se` in Chrome.
+2. Chrome menu → **Add to home screen / Install app**.
+3. In Eklunda: pick your name, then **Inställningar → Slå på notiser**.
+
+## Backup
+
+```bash
+docker compose exec db pg_dump -U eklunda eklunda > eklunda-$(date +%F).sql
+```
 
 ## Notes
 
 - Push notifications go through Google's push service, so the Pi needs outbound internet for
-  them. The app itself works on the local network without internet.
+  them. Certificate renewal also needs it.
 - The VAPID keys for push are generated on first use and stored in the database (`VapidKeys`).
   If that row is lost, everyone has to turn notifications on again.
-- Login cookies are protected with ASP.NET Data Protection keys stored in the service user's
-  home directory (`~/.aspnet/DataProtection-Keys`). If they are lost, everyone just picks their
-  name again.
+- Login cookies are protected with ASP.NET Data Protection keys stored in the `keys` volume.
+  If it is lost, everyone just picks their name again.
+- The app trusts `X-Forwarded-*` headers from any address. That's fine as long as it is only
+  reachable through Caddy, so don't publish its port.

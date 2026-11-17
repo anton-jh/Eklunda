@@ -5,7 +5,7 @@
 A small web app for the 2–3 people who share the upkeep of a property. It's built around
 **cooperation**: everyone helps out, and the app shows what's been done and who plans to do what.
 
-It runs on a Raspberry Pi on the local network, behind Caddy for HTTPS (see `deploy/`). Users are
+It runs on a Raspberry Pi on the local network, in Docker behind Caddy for HTTPS (see `deploy/`). Users are
 trusted: no passwords, you pick your name once and a cookie remembers it. All phones are Android.
 
 ## Intentions ("Avsikter")

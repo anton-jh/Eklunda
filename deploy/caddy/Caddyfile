@@ -1,0 +1,10 @@
+# Certificates come from Let's Encrypt through a DNS challenge, so the Pi never has to be
+# reachable from the internet. Add a block per service, then:
+#   docker compose exec -w /etc/caddy caddy caddy reload
+{
+	acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+}
+
+skogeklunda.se {
+	reverse_proxy eklunda:8080
+}

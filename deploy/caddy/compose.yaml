@@ -1,0 +1,25 @@
+# Caddy for every service on the Pi. Copy this folder to ~/services/caddy/ on the Pi, next to a
+# .env file with CLOUDFLARE_API_TOKEN=...
+
+services:
+  caddy:
+    image: caddy-cloudflare
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    env_file: .env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - data:/data
+      - config:/config
+    networks: [web]
+
+volumes:
+  data:
+  config:
+
+networks:
+  web:
+    external: true
