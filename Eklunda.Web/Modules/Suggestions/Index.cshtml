@@ -1,0 +1,43 @@
+@page
+@model Eklunda.Web.Modules.Suggestions.IndexModel
+@using Eklunda.Web.Shared
+@{
+    ViewData["Title"] = "Förslagslåda";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/suggestions.css" asp-append-version="true" />
+}
+
+<header class="page-header">
+    <h1>Förslagslåda</h1>
+    <a class="header-action" asp-page="Edit">+ Nytt</a>
+</header>
+
+@if (Model.Toast is { } toast)
+{
+    <p class="toast" role="status">@toast</p>
+}
+
+@if (Model.Suggestions.Count == 0)
+{
+    <p class="empty">Inga förslag än.</p>
+}
+else
+{
+    <ul class="suggestions">
+        @foreach (var suggestion in Model.Suggestions)
+        {
+            <li>
+                <a class="suggestion" asp-page="Edit" asp-route-id="@suggestion.Id">
+                    <strong>@suggestion.Title</strong>
+                    @if (suggestion.Description.Length > 0)
+                    {
+                        <span class="suggestion-description">@suggestion.Description</span>
+                    }
+                    <small>@Model.Who(suggestion.CreatedBy) · @Formats.When(suggestion.CreatedDate)</small>
+                </a>
+            </li>
+        }
+    </ul>
+}

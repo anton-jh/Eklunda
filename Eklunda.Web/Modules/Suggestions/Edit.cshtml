@@ -1,0 +1,45 @@
+@page "{id:guid?}"
+@model Eklunda.Web.Modules.Suggestions.EditModel
+@using Eklunda.Web.Modules.Suggestions.Models
+@{
+    var suggestion = Model.Suggestion;
+    ViewData["Title"] = suggestion is null ? "Nytt förslag" : "Ändra förslag";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/suggestions.css" asp-append-version="true" />
+}
+
+<nav class="topnav">
+    <a asp-page="Index">‹ Förslagslåda</a>
+</nav>
+
+<header class="page-header">
+    <h1>@ViewData["Title"]</h1>
+</header>
+
+<form method="post" class="suggestion-form" autocomplete="off">
+    <fieldset>
+        <legend><label for="title">Rubrik</label></legend>
+        <input id="title" name="title" value="@suggestion?.Title" maxlength="@Suggestion.MaxTitleLength" required />
+    </fieldset>
+
+    <fieldset>
+        <legend><label for="description">Beskrivning</label></legend>
+        <textarea id="description" name="description" rows="6" maxlength="@Suggestion.MaxDescriptionLength"
+                  placeholder="Valfritt">@suggestion?.Description</textarea>
+    </fieldset>
+
+    <div class="actions">
+        <button type="submit">Spara</button>
+    </div>
+
+    @* After Spara, so Enter still saves. *@
+    @if (suggestion is not null)
+    {
+        <p class="delete">
+            <button type="submit" asp-page-handler="Delete" asp-route-id="@suggestion.Id" formnovalidate
+                    class="link-button" onclick="return confirm('Ta bort förslaget?')">Ta bort förslaget</button>
+        </p>
+    }
+</form>

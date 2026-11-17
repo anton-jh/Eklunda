@@ -2,6 +2,7 @@
 @model Eklunda.Web.Pages.Intentions.IndexModel
 @using Eklunda.Web.Core.Intentions
 @using Eklunda.Web.Core.Users
+@using Eklunda.Web.Shared
 @{
     ViewData["Title"] = "Avsikter";
 }
@@ -39,11 +40,11 @@ else
             <li class="intention@(mine ? " intention-mine" : "")">
                 <div class="intention-body">
                     <span class="intention-text">@intention.Description</span>
-                    <small><span class="intention-who">@Model.Who(intention.CreatedBy)</span> · @IndexModel.When(intention.CreatedDate)</small>
+                    <small><span class="intention-who">@Model.Who(intention.CreatedBy)</span> · @Formats.When(intention.CreatedDate)</small>
                     @if (mine)
                     {
                         <details class="reminder">
-                            <summary>@(intention.RemindAt is { } remindAt ? $"Påminnelse {IndexModel.WhenWithTime(remindAt)}" : "Påminn mig")</summary>
+                            <summary>@(intention.RemindAt is { } remindAt ? $"Påminnelse {Formats.WhenWithTime(remindAt)}" : "Påminn mig")</summary>
                             <form method="post" class="reminder-fields">
                                 <input type="hidden" name="id" value="@intention.Id.Value" />
                                 <input type="hidden" name="showDone" value="@Model.ShowDone.ToString().ToLowerInvariant()" />
@@ -89,7 +90,7 @@ else
                 <li class="intention">
                     <div class="intention-body">
                         <span class="intention-text">@intention.Description</span>
-                        <small>@Model.Who(intention.CreatedBy) · klar @IndexModel.When(intention.DoneAt!.Value)</small>
+                        <small>@Model.Who(intention.CreatedBy) · klar @Formats.When(intention.DoneAt!.Value)</small>
                     </div>
                 </li>
             }

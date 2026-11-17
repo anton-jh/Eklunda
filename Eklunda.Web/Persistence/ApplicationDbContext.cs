@@ -2,6 +2,7 @@
 using Eklunda.Web.Core.Notifications;
 using Eklunda.Web.Core.Users;
 using Eklunda.Web.Modules.Heating.Models;
+using Eklunda.Web.Modules.Suggestions.Models;
 using Eklunda.Web.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -46,6 +47,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.Property(x => x.Id).ValueGeneratedNever();
             b.HasData(new HeatingSettings());
         });
+
+        modelBuilder.Entity<Suggestion>(b =>
+        {
+            b.Property(x => x.Title).HasMaxLength(Suggestion.MaxTitleLength);
+            b.Property(x => x.Description).HasMaxLength(Suggestion.MaxDescriptionLength);
+        });
     }
 
     public Task CommitAsync(CancellationToken cancellationToken)
@@ -62,6 +69,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     // Heating
     public required DbSet<HeatingLogEntry> HeatingLogEntries { get; init; }
     public required DbSet<HeatingSettings> HeatingSettings { get; init; }
+
+    // Suggestions
+    public required DbSet<Suggestion> Suggestions { get; init; }
 }
 
 

@@ -3,6 +3,7 @@ using Eklunda.Web.Core.Intentions;
 using Eklunda.Web.Core.Notifications;
 using Eklunda.Web.Core.Users;
 using Eklunda.Web.Modules.Heating;
+using Eklunda.Web.Modules.Suggestions;
 using Eklunda.Web.Persistence;
 using Eklunda.Web.Shared;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -44,6 +45,7 @@ builder.Services.AddScoped<IntentionNotifier>();
 builder.Services.AddHostedService<IntentionReminderJob>();
 builder.Services.AddScoped<HeatingService>();
 builder.Services.AddScoped<HeatingNotifier>();
+builder.Services.AddScoped<SuggestionService>();
 
 var app = builder.Build();
 

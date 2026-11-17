@@ -72,25 +72,6 @@ public class IndexModel(
 
     public string Who(UserId id) => Names.NameOf(id, Me);
 
-    public static string When(DateTimeOffset value) => Format(value, alwaysTime: false);
-
-    public static string WhenWithTime(DateTimeOffset value) => Format(value, alwaysTime: true);
-
-    private static string Format(DateTimeOffset value, bool alwaysTime)
-    {
-        var local = value.ToLocalTime();
-        var date = DateOnly.FromDateTime(local.DateTime);
-        var today = DateOnly.FromDateTime(DateTime.Now);
-        var time = local.ToString("HH:mm");
-
-        if (date == today) return $"idag {time}";
-        if (date == today.AddDays(-1)) return $"igår {time}";
-        if (date == today.AddDays(1)) return $"imorgon {time}";
-
-        var day = local.ToString(date.Year == today.Year ? "d MMM" : "d MMM yyyy", Formats.Swedish).Replace(".", "");
-        return alwaysTime ? $"{day} {time}" : day;
-    }
-
     // datetime-local inputs use the server's local time, like the rest of the app.
     public static string InputValue(DateTimeOffset? value)
         => value?.ToLocalTime().ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture) ?? "";

@@ -1,0 +1,44 @@
+.suggestions {
+    margin: 0;
+    padding: 0 1rem;
+    list-style: none;
+    border: 1px solid var(--border);
+    border-radius: .875rem;
+    background: var(--surface);
+    overflow: hidden;
+}
+
+.suggestions li + li {
+    border-top: 1px solid var(--border);
+}
+
+/* The whole suggestion opens it for editing; pulled out over the list's padding so the press shows edge to edge. */
+.suggestion {
+    display: flex;
+    flex-direction: column;
+    gap: .125rem;
+    margin: 0 -1rem;
+    padding: .75rem 1rem;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.suggestion:active {
+    background: var(--bg);
+}
+
+.suggestion-description {
+    color: var(--muted);
+    font-size: .9375rem;
+    white-space: pre-line;
+}
+
+.suggestion small {
+    color: var(--muted);
+    font-size: .75rem;
+}
+
+.suggestion-form input {
+    width: 100%;
+    margin-bottom: .75rem;
+}
