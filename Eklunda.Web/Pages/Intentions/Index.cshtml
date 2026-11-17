@@ -10,11 +10,20 @@
     <h1>Avsikter</h1>
 </header>
 
-<form method="post" asp-page-handler="Create" asp-route-showDone="@Model.ShowDone" class="inline-form" autocomplete="off">
-    <label for="description" class="visually-hidden">Jag tar…</label>
-    <input id="description" name="description" maxlength="@IntentionService.MaxDescriptionLength" required
-           placeholder="Jag tar…" />
-    <button type="submit">Lägg till</button>
+<form method="post" asp-page-handler="Create" asp-route-showDone="@Model.ShowDone" class="new-intention" autocomplete="off">
+    <div class="inline-form">
+        <label for="description" class="visually-hidden">Jag tar…</label>
+        <input id="description" name="description" maxlength="@IntentionService.MaxDescriptionLength" required
+               placeholder="Jag tar…" />
+        <button type="submit">Lägg till</button>
+    </div>
+    <details class="reminder">
+        <summary>Påminn mig</summary>
+        <div class="reminder-fields">
+            <label for="remindAt" class="visually-hidden">Påminn mig</label>
+            <input id="remindAt" name="remindAt" type="datetime-local" />
+        </div>
+    </details>
 </form>
 
 @if (Model.Open.Count == 0)
@@ -31,6 +40,24 @@ else
                 <div class="intention-body">
                     <span class="intention-text">@intention.Description</span>
                     <small><span class="intention-who">@Model.Who(intention.CreatedBy)</span> · @IndexModel.When(intention.CreatedDate)</small>
+                    @if (mine)
+                    {
+                        <details class="reminder">
+                            <summary>@(intention.RemindAt is { } remindAt ? $"Påminnelse {IndexModel.WhenWithTime(remindAt)}" : "Påminn mig")</summary>
+                            <form method="post" class="reminder-fields">
+                                <input type="hidden" name="id" value="@intention.Id.Value" />
+                                <input type="hidden" name="showDone" value="@Model.ShowDone.ToString().ToLowerInvariant()" />
+                                <label for="remindAt-@intention.Id.Value" class="visually-hidden">Påminn mig</label>
+                                <input id="remindAt-@intention.Id.Value" name="remindAt" type="datetime-local"
+                                       value="@IndexModel.InputValue(intention.RemindAt)" />
+                                <button type="submit" asp-page-handler="Remind" class="chip-button">Spara</button>
+                                @if (intention.RemindAt is not null)
+                                {
+                                    <button type="submit" asp-page-handler="RemoveReminder" class="link-button">Ta bort</button>
+                                }
+                            </form>
+                        </details>
+                    }
                 </div>
                 @* Hidden fields: the buttons' formaction drops route values from the form's action. *@
                 <form method="post" class="intention-actions">

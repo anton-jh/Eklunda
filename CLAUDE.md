@@ -13,7 +13,10 @@ trusted: no passwords, you pick your name once and a cookie remembers it. All ph
 An intention says **"I plan on taking care of this next, so you don't have to."**
 
 - Offers, never assignments. No turn-taking, no "it's your turn".
-- No nagging: no deadlines, no overdue states, no reminders.
+- No nagging: no deadlines, no overdue states, no reminders from or about others.
+- The creator can set a private reminder for themselves (`RemindAt`). Only they see it and get it:
+  up to 6 pushes, 5 minutes apart, until they use Klar/Släpp or dismiss it. Dismissing marks nothing.
+  "Jag tar nästa" for heating gets one automatically, after a shared setting (default 2 h).
 - Asking is fine, but "Nej" is always a normal answer.
 - Notifications report what happened and may offer the next step ("Jag tar nästa"). Keep them
   light and factual.

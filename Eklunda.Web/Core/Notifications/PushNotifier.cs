@@ -17,11 +17,16 @@ public class PushNotifier(
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    public async Task SendToAllExcept(UserId? except, PushNotification notification, CancellationToken cancellationToken)
+    public Task SendTo(UserId user, PushNotification notification, CancellationToken cancellationToken)
+        => Send(dbContext.PushSubscriptions.Where(x => x.UserId == user), notification, cancellationToken);
+
+    public Task SendToAllExcept(UserId? except, PushNotification notification, CancellationToken cancellationToken)
+        => Send(dbContext.PushSubscriptions.Where(x => x.UserId != except), notification, cancellationToken);
+
+    private async Task Send(
+        IQueryable<DevicePushSubscription> query, PushNotification notification, CancellationToken cancellationToken)
     {
-        var subscriptions = await dbContext.PushSubscriptions
-            .Where(x => x.UserId != except)
-            .ToListAsync(cancellationToken);
+        var subscriptions = await query.ToListAsync(cancellationToken);
         if (subscriptions.Count == 0)
             return;
 

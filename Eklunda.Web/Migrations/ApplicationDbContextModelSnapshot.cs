@@ -47,6 +47,15 @@ namespace Eklunda.Web.Migrations
                     b.Property<string>("DoneWhenEvent")
                         .HasColumnType("text");
 
+                    b.Property<DateTimeOffset?>("NextReminderAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("RemindAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("RemindersSent")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DoneWhenEvent", "DoneAt");
@@ -162,6 +171,26 @@ namespace Eklunda.Web.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("HeatingLogEntries");
+                });
+
+            modelBuilder.Entity("Eklunda.Web.Modules.Heating.Models.HeatingSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("NextCheckReminderHours")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HeatingSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            NextCheckReminderHours = 2
+                        });
                 });
 #pragma warning restore 612, 618
         }

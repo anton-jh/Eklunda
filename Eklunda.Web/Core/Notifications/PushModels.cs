@@ -20,12 +20,14 @@ public class VapidKeys(string publicKey, string privateKey)
 }
 
 // Shown by wwwroot/sw.js. Notifications with the same tag replace each other.
+// DismissUrl is POSTed when the notification is swiped away or tapped (not when a button is used).
 public record PushNotification(
     string Title,
     string Body,
     string Tag,
     string Url,
-    IReadOnlyList<PushAction>? Actions = null);
+    IReadOnlyList<PushAction>? Actions = null,
+    string? DismissUrl = null);
 
 // The service worker POSTs to PostUrl and shows the returned PushActionResult.
 public record PushAction(string Action, string Title, string PostUrl);

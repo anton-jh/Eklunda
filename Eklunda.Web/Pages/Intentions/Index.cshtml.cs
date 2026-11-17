@@ -1,3 +1,4 @@
+using System.Globalization;
 using Eklunda.Web.Core.Intentions;
 using Eklunda.Web.Core.Users;
 using Eklunda.Web.Shared;
@@ -32,11 +33,12 @@ public class IndexModel(
             Done = await intentionService.GetDone(cancellationToken);
     }
 
-    public async Task<IActionResult> OnPostCreate(string? description, CancellationToken cancellationToken)
+    public async Task<IActionResult> OnPostCreate(string? description, DateTime? remindAt, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrWhiteSpace(description))
         {
             var intention = intentionService.Create(description, currentUser.Id);
+            intention.SetReminder(FromInput(remindAt));
             await unitOfWork.CommitAsync(cancellationToken);
             await intentionNotifier.NotifyCreated(intention, cancellationToken);
         }
@@ -58,9 +60,23 @@ public class IndexModel(
         return RedirectToPage(new { ShowDone });
     }
 
+    public async Task<IActionResult> OnPostRemind(Guid id, DateTime? remindAt, CancellationToken cancellationToken)
+    {
+        await intentionService.SetReminder(new IntentionId(id), currentUser.Id, FromInput(remindAt), cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
+        return RedirectToPage(new { ShowDone });
+    }
+
+    public Task<IActionResult> OnPostRemoveReminder(Guid id, CancellationToken cancellationToken)
+        => OnPostRemind(id, null, cancellationToken);
+
     public string Who(UserId id) => Names.NameOf(id, Me);
 
-    public static string When(DateTimeOffset value)
+    public static string When(DateTimeOffset value) => Format(value, alwaysTime: false);
+
+    public static string WhenWithTime(DateTimeOffset value) => Format(value, alwaysTime: true);
+
+    private static string Format(DateTimeOffset value, bool alwaysTime)
     {
         var local = value.ToLocalTime();
         var date = DateOnly.FromDateTime(local.DateTime);
@@ -69,6 +85,16 @@ public class IndexModel(
 
         if (date == today) return $"idag {time}";
         if (date == today.AddDays(-1)) return $"igår {time}";
-        return local.ToString(date.Year == today.Year ? "d MMM" : "d MMM yyyy", Formats.Swedish).Replace(".", "");
+        if (date == today.AddDays(1)) return $"imorgon {time}";
+
+        var day = local.ToString(date.Year == today.Year ? "d MMM" : "d MMM yyyy", Formats.Swedish).Replace(".", "");
+        return alwaysTime ? $"{day} {time}" : day;
     }
+
+    // datetime-local inputs use the server's local time, like the rest of the app.
+    public static string InputValue(DateTimeOffset? value)
+        => value?.ToLocalTime().ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture) ?? "";
+
+    private static DateTimeOffset? FromInput(DateTime? value)
+        => value is null ? null : new DateTimeOffset(DateTime.SpecifyKind(value.Value, DateTimeKind.Local));
 }

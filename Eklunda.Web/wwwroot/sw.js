@@ -16,18 +16,30 @@ self.addEventListener("push", event => {
         icon,
         badge,
         actions: actions.map(a => ({ action: a.action, title: a.title })),
-        data: { url: data.url ?? "/", actions }
+        data: { url: data.url ?? "/", actions, dismissUrl: data.dismissUrl }
     }));
 });
 
 self.addEventListener("notificationclick", event => {
     const notification = event.notification;
-    const { url, actions = [] } = notification.data ?? {};
+    const { url, actions = [], dismissUrl } = notification.data ?? {};
     notification.close();
 
     const action = actions.find(a => a.action === event.action);
-    event.waitUntil(action ? runAction(action, notification.tag, url) : openPage(url ?? "/"));
+    event.waitUntil(action
+        ? runAction(action, notification.tag, url)
+        : Promise.all([dismiss(dismissUrl), openPage(url ?? "/")]));
 });
+
+// Swiped away. Not fired by notification.close() or when a notification is replaced.
+self.addEventListener("notificationclose", event => {
+    event.waitUntil(dismiss(event.notification.data?.dismissUrl));
+});
+
+async function dismiss(dismissUrl) {
+    if (!dismissUrl) return;
+    try { await fetch(dismissUrl, { method: "POST", credentials: "same-origin" }); } catch { }
+}
 
 async function runAction(action, tag, url) {
     let result = { title: "Det gick inte", body: "Försök igen i appen." };

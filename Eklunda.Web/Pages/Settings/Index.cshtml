@@ -1,6 +1,7 @@
 @page
 @model Eklunda.Web.Pages.Settings.IndexModel
 @using Eklunda.Web.Core.Users
+@using Eklunda.Web.Modules.Heating.Models
 @{
     ViewData["Title"] = "Inställningar";
 }
@@ -74,4 +75,17 @@
     <p class="hint" data-push-status>…</p>
     <button type="button" class="secondary-button" data-push-enable hidden>Slå på notiser</button>
     <button type="button" class="link-button" data-push-disable hidden>Stäng av</button>
+</section>
+
+<section class="panel">
+    <h2>Uppvärmning · gäller alla</h2>
+    <form method="post" asp-page-handler="Heating">
+        <label class="temp">
+            <span>Påminn om nästa koll efter</span>
+            <input name="nextCheckReminderHours" value="@Model.NextCheckReminderHours" type="number" inputmode="numeric"
+                   min="@HeatingSettings.MinReminderHours" max="@HeatingSettings.MaxReminderHours" required />
+            <em>h</em>
+        </label>
+        <button type="submit" class="secondary-button">Spara</button>
+    </form>
 </section>

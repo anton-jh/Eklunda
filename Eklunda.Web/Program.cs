@@ -41,6 +41,7 @@ builder.Services.AddEvents();
 builder.Services.AddPushNotifications();
 builder.Services.AddScoped<IntentionService>();
 builder.Services.AddScoped<IntentionNotifier>();
+builder.Services.AddHostedService<IntentionReminderJob>();
 builder.Services.AddScoped<HeatingService>();
 builder.Services.AddScoped<HeatingNotifier>();
 
@@ -71,6 +72,7 @@ app.MapStaticAssets()
 app.MapRazorPages()
    .WithStaticAssets();
 app.MapPushEndpoints();
+app.MapIntentionEndpoints();
 app.MapHeatingEndpoints();
 
 app.Run();

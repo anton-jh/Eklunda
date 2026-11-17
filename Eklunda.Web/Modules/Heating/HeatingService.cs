@@ -28,8 +28,22 @@ public class HeatingService(
         return entry;
     }
 
-    public Task<(Intention Intention, bool Created)> TakeNext(UserId userId, CancellationToken cancellationToken)
-        => intentionService.TakeFirst(NextCheckDescription, userId, CreatedHeatingLogEntryEvent.Key, cancellationToken);
+    public async Task<(Intention Intention, bool Created)> TakeNext(UserId userId, CancellationToken cancellationToken)
+    {
+        var (intention, created) = await intentionService.TakeFirst(
+            NextCheckDescription, userId, CreatedHeatingLogEntryEvent.Key, cancellationToken);
+
+        if (created)
+        {
+            var settings = await GetSettings(cancellationToken);
+            intention.SetReminder(DateTimeOffset.UtcNow.AddHours(settings.NextCheckReminderHours));
+        }
+
+        return (intention, created);
+    }
+
+    public Task<HeatingSettings> GetSettings(CancellationToken cancellationToken)
+        => dbContext.HeatingSettings.SingleAsync(cancellationToken);
 
     public async Task<UserId?> GetNextCheckHolder(CancellationToken cancellationToken)
         => (await intentionService.GetOpenFor(CreatedHeatingLogEntryEvent.Key, cancellationToken))?.CreatedBy;

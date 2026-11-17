@@ -24,6 +24,14 @@ public class IntentionService(ApplicationDbContext dbContext)
     public Task<int> CountDone(CancellationToken cancellationToken)
         => dbContext.Intentions.CountAsync(x => x.DoneAt != null, cancellationToken);
 
+    public Task<Intention?> Get(IntentionId id, CancellationToken cancellationToken)
+        => dbContext.Intentions.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+    public Task<List<Intention>> GetDueReminders(DateTimeOffset now, CancellationToken cancellationToken)
+        => dbContext.Intentions
+            .Where(x => x.NextReminderAt <= now && x.DoneAt == null)
+            .ToListAsync(cancellationToken);
+
     public Task<Intention?> GetOpenFor(string doneWhenEvent, CancellationToken cancellationToken)
         => dbContext.Intentions
             .Where(x => x.DoneWhenEvent == doneWhenEvent && x.DoneAt == null)
@@ -88,8 +96,19 @@ public class IntentionService(ApplicationDbContext dbContext)
 
     public async Task Release(IntentionId id, UserId user, CancellationToken cancellationToken)
     {
-        var intention = await dbContext.Intentions.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-        if (intention is { IsDone: false } && intention.CreatedBy == user)
+        if (await GetOwnOpen(id, user, cancellationToken) is { } intention)
             dbContext.Intentions.Remove(intention);
+    }
+
+    public async Task SetReminder(IntentionId id, UserId user, DateTimeOffset? at, CancellationToken cancellationToken)
+        => (await GetOwnOpen(id, user, cancellationToken))?.SetReminder(at);
+
+    public async Task StopReminding(IntentionId id, UserId user, CancellationToken cancellationToken)
+        => (await GetOwnOpen(id, user, cancellationToken))?.StopReminding();
+
+    private async Task<Intention?> GetOwnOpen(IntentionId id, UserId user, CancellationToken cancellationToken)
+    {
+        var intention = await Get(id, cancellationToken);
+        return intention is { IsDone: false } && intention.CreatedBy == user ? intention : null;
     }
 }

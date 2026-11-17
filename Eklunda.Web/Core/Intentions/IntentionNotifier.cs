@@ -14,8 +14,24 @@ public class IntentionNotifier(
         await pushNotifier.SendToAllExcept(intention.CreatedBy, new PushNotification(
             Title: $"Ny avsikt från {names.NameOf(intention.CreatedBy)}",
             Body: intention.Description,
-            // Unique, so intentions don't replace each other. Also the push Topic, which allows 32 characters.
-            Tag: intention.Id.Value.ToString("N"),
+            Tag: Tag(intention),
             Url: "/Intentions"), cancellationToken);
     }
+
+    // Each reminder replaces the previous one. Dismissing or tapping it stops the reminders.
+    public Task NotifyReminder(Intention intention, CancellationToken cancellationToken)
+        => pushNotifier.SendTo(intention.CreatedBy, new PushNotification(
+            Title: "Påminnelse",
+            Body: intention.Description,
+            Tag: Tag(intention),
+            Url: "/Intentions",
+            Actions:
+            [
+                new PushAction("release", "Släpp", IntentionEndpoints.ReleaseUrl(intention.Id)),
+                new PushAction("done", "Klar", IntentionEndpoints.DoneUrl(intention.Id)),
+            ],
+            DismissUrl: IntentionEndpoints.StopRemindingUrl(intention.Id)), cancellationToken);
+
+    // Unique, so intentions don't replace each other. Also the push Topic, which allows 32 characters.
+    private static string Tag(Intention intention) => intention.Id.Value.ToString("N");
 }

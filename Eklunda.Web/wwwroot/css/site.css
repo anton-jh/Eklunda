@@ -433,7 +433,7 @@ a {
     color: var(--accent);
 }
 
-input[type=text], input:not([type]) {
+input[type=text], input[type=datetime-local], input:not([type]) {
     box-sizing: border-box;
     min-width: 0;
     padding: .625rem .75rem;
@@ -589,4 +589,32 @@ input::placeholder {
 .intention-mine .intention-who {
     color: var(--accent);
     font-weight: 600;
+}
+
+/* Reminders, only shown to the creator */
+.new-intention {
+    margin-bottom: 1rem;
+}
+
+.new-intention .inline-form {
+    margin-bottom: .5rem;
+}
+
+.reminder summary {
+    width: fit-content;
+    color: var(--muted);
+    font-size: .8125rem;
+    cursor: pointer;
+}
+
+.reminder-fields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem .75rem;
+    margin-top: .5rem;
+}
+
+.panel form > .temp:first-child {
+    border-top: 0;
 }
