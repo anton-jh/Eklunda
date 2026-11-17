@@ -29,15 +29,41 @@ else
         @foreach (var suggestion in Model.Suggestions)
         {
             <li>
-                <a class="suggestion" asp-page="Edit" asp-route-id="@suggestion.Id">
+                <a class="suggestion" asp-page="Details" asp-route-id="@suggestion.Id">
                     <strong>@suggestion.Title</strong>
                     @if (suggestion.Description.Length > 0)
                     {
                         <span class="suggestion-description">@suggestion.Description</span>
                     }
-                    <small>@Model.Who(suggestion.CreatedBy) · @Formats.When(suggestion.CreatedDate)</small>
+                    <small>@Model.Who(suggestion.CreatedBy) · @Formats.When(suggestion.CreatedDate)@Model.Comments(suggestion)</small>
                 </a>
             </li>
         }
     </ul>
+}
+
+@if (Model.DeletedCount > 0)
+{
+    if (!Model.ShowDeleted)
+    {
+        <p class="jump"><a asp-route-showDeleted="true">Visa borttagna (@Model.DeletedCount)</a></p>
+    }
+    else
+    {
+        <p class="jump"><a asp-route-showDeleted="">Dölj borttagna</a></p>
+        <ul class="suggestions suggestions-deleted">
+            @foreach (var suggestion in Model.Deleted)
+            {
+                <li class="deleted-suggestion">
+                    <a class="suggestion" asp-page="Details" asp-route-id="@suggestion.Id">
+                        <strong>@suggestion.Title</strong>
+                        <small>@Model.Who(suggestion.DeletedBy!) tog bort · @Formats.When(suggestion.DeletedAt!.Value)</small>
+                    </a>
+                    <form method="post" asp-page="Details" asp-page-handler="Restore" asp-route-id="@suggestion.Id">
+                        <button type="submit" class="chip-button">Återställ</button>
+                    </form>
+                </li>
+            }
+        </ul>
+    }
 }

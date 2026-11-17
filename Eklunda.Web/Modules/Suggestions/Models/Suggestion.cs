@@ -1,4 +1,5 @@
 using Eklunda.Web.Core.Users;
+using Eklunda.Web.Shared;
 
 namespace Eklunda.Web.Modules.Suggestions.Models;
 
@@ -12,16 +13,33 @@ public class Suggestion(UserId createdBy)
     public UserId CreatedBy { get; private set; } = createdBy;
     public string Title { get; private set; } = "";
     public string Description { get; private set; } = "";
+    public DateTimeOffset? DeletedAt { get; private set; }
+    public UserId? DeletedBy { get; private set; }
 
-    public void Set(string title, string? description)
+    public bool IsDeleted => DeletedAt is not null;
+
+    // Returns whether anything changed.
+    public bool Set(string title, string? description)
     {
-        Title = Clean(title, MaxTitleLength);
-        Description = Clean(description, MaxDescriptionLength);
+        var cleanTitle = Strings.Clean(title, MaxTitleLength);
+        var cleanDescription = Strings.Clean(description, MaxDescriptionLength);
+        if (cleanTitle == Title && cleanDescription == Description)
+            return false;
+
+        Title = cleanTitle;
+        Description = cleanDescription;
+        return true;
     }
 
-    private static string Clean(string? value, int maxLength)
+    public void Delete(UserId by)
     {
-        value = (value ?? "").Trim();
-        return value.Length > maxLength ? value[..maxLength] : value;
+        DeletedAt = DateTimeOffset.UtcNow;
+        DeletedBy = by;
+    }
+
+    public void Restore()
+    {
+        DeletedAt = null;
+        DeletedBy = null;
     }
 }

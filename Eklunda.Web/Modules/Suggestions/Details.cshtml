@@ -1,0 +1,93 @@
+@page "{id:guid}"
+@model Eklunda.Web.Modules.Suggestions.DetailsModel
+@using Eklunda.Web.Modules.Suggestions.Models
+@using Eklunda.Web.Shared
+@{
+    var suggestion = Model.Suggestion;
+    ViewData["Title"] = suggestion.Title;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/suggestions.css" asp-append-version="true" />
+}
+
+<nav class="topnav">
+    <a asp-page="Index">‹ Förslagslåda</a>
+</nav>
+
+<header class="page-header">
+    <h1 class="suggestion-title">@suggestion.Title</h1>
+    @if (!suggestion.IsDeleted)
+    {
+        <a class="header-action" asp-page="Edit" asp-route-id="@suggestion.Id">Ändra</a>
+    }
+</header>
+
+@if (Model.Toast is { } toast)
+{
+    <p class="toast" role="status">@toast</p>
+}
+
+@if (suggestion.IsDeleted)
+{
+    <form method="post" asp-page-handler="Restore" asp-route-id="@suggestion.Id" class="deleted-notice">
+        <span>@Model.Who(suggestion.DeletedBy!) tog bort · @Formats.When(suggestion.DeletedAt!.Value)</span>
+        <button type="submit" class="chip-button">Återställ</button>
+    </form>
+}
+
+@if (suggestion.Description.Length > 0)
+{
+    <p class="suggestion-text">@suggestion.Description</p>
+}
+<p class="suggestion-meta">@Model.Who(suggestion.CreatedBy) · @Formats.When(suggestion.CreatedDate)</p>
+
+<section class="panel">
+    <h2>Kommentarer</h2>
+    @if (Model.Comments.Count > 0)
+    {
+        <ul class="comments">
+            @foreach (var comment in Model.Comments)
+            {
+                <li class="comment">
+                    <span class="comment-text">@comment.Text</span>
+                    <small>@Model.Who(comment.CreatedBy) · @Formats.When(comment.CreatedDate)</small>
+                    @if (comment.CreatedBy == Model.Me && !suggestion.IsDeleted)
+                    {
+                        <details class="comment-edit">
+                            <summary>Ändra</summary>
+                            @* Hidden field: the buttons' formaction drops query values from the form's action. *@
+                            <form method="post" autocomplete="off">
+                                <input type="hidden" name="commentId" value="@comment.Id" />
+                                <label for="text-@comment.Id" class="visually-hidden">Kommentar</label>
+                                <textarea id="text-@comment.Id" name="text" rows="3" maxlength="@SuggestionComment.MaxTextLength"
+                                          required>@comment.Text</textarea>
+                                <div class="comment-edit-actions">
+                                    <button type="submit" asp-page-handler="EditComment" asp-route-id="@suggestion.Id"
+                                            class="chip-button">Spara</button>
+                                    <button type="submit" asp-page-handler="DeleteComment" asp-route-id="@suggestion.Id"
+                                            formnovalidate class="link-button"
+                                            onclick="return confirm('Ta bort kommentaren?')">Ta bort</button>
+                                </div>
+                            </form>
+                        </details>
+                    }
+                </li>
+            }
+        </ul>
+    }
+    else if (suggestion.IsDeleted)
+    {
+        <p class="comments-empty">Inga kommentarer.</p>
+    }
+
+    @if (!suggestion.IsDeleted)
+    {
+        <form method="post" asp-page-handler="Comment" asp-route-id="@suggestion.Id" class="comment-form" autocomplete="off">
+            <label for="text" class="visually-hidden">Kommentar</label>
+            <textarea id="text" name="text" rows="2" maxlength="@SuggestionComment.MaxTextLength" required
+                      placeholder="Skriv en kommentar…"></textarea>
+            <button type="submit" class="secondary-button">Skicka</button>
+        </form>
+    }
+</section>

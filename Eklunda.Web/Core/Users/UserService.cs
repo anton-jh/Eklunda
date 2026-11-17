@@ -1,4 +1,5 @@
 using Eklunda.Web.Persistence;
+using Eklunda.Web.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace Eklunda.Web.Core.Users;
@@ -29,11 +30,7 @@ public class UserService(ApplicationDbContext dbContext)
         return user;
     }
 
-    public static string Clean(string? name)
-    {
-        name = (name ?? "").Trim();
-        return name.Length > MaxNameLength ? name[..MaxNameLength] : name;
-    }
+    public static string Clean(string? name) => Strings.Clean(name, MaxNameLength);
 }
 
 public static class UserNameExtensions

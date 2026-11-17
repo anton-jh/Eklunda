@@ -46,6 +46,7 @@ builder.Services.AddHostedService<IntentionReminderJob>();
 builder.Services.AddScoped<HeatingService>();
 builder.Services.AddScoped<HeatingNotifier>();
 builder.Services.AddScoped<SuggestionService>();
+builder.Services.AddScoped<SuggestionNotifier>();
 
 var app = builder.Build();
 

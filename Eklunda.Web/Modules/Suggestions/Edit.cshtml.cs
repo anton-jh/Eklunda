@@ -9,6 +9,7 @@ namespace Eklunda.Web.Modules.Suggestions;
 // New suggestion without an id, edit with one.
 public class EditModel(
     SuggestionService suggestionService,
+    SuggestionNotifier suggestionNotifier,
     ICurrentUser currentUser,
     IUnitOfWork unitOfWork)
     : PageModel
@@ -21,7 +22,10 @@ public class EditModel(
             return Page();
 
         Suggestion = await suggestionService.Get(id.Value, cancellationToken);
-        return Suggestion is null ? NotFound() : Page();
+        if (Suggestion is null)
+            return NotFound();
+
+        return Suggestion.IsDeleted ? RedirectToPage("Details", new { id }) : Page();
     }
 
     public async Task<IActionResult> OnPost(
@@ -36,19 +40,23 @@ public class EditModel(
 
         if (id is null)
         {
-            suggestionService.Create(currentUser.Id, title, description);
+            var created = suggestionService.Create(currentUser.Id, title, description);
+            await unitOfWork.CommitAsync(cancellationToken);
+            await suggestionNotifier.NotifyCreated(created, currentUser.Id, cancellationToken);
+            return RedirectWithToast("Index", null, "Sparat ✓");
         }
-        else
+
+        var suggestion = await suggestionService.Get(id.Value, cancellationToken);
+        if (suggestion is null)
+            return NotFound();
+
+        if (!suggestion.IsDeleted && suggestion.Set(title, description))
         {
-            var suggestion = await suggestionService.Get(id.Value, cancellationToken);
-            if (suggestion is null)
-                return NotFound();
-
-            suggestion.Set(title, description);
+            await unitOfWork.CommitAsync(cancellationToken);
+            await suggestionNotifier.NotifyEdited(suggestion, currentUser.Id, cancellationToken);
         }
 
-        await unitOfWork.CommitAsync(cancellationToken);
-        return RedirectToIndex("Sparat ✓");
+        return RedirectWithToast("Details", id, "Sparat ✓");
     }
 
     public async Task<IActionResult> OnPostDelete(Guid id, CancellationToken cancellationToken)
@@ -57,15 +65,15 @@ public class EditModel(
         if (suggestion is null)
             return RedirectToPage("Index");
 
-        suggestionService.Delete(suggestion);
+        suggestion.Delete(currentUser.Id);
         await unitOfWork.CommitAsync(cancellationToken);
 
-        return RedirectToIndex("Borttaget ✓");
+        return RedirectWithToast("Index", null, "Borttaget ✓");
     }
 
-    private RedirectToPageResult RedirectToIndex(string toast)
+    private RedirectToPageResult RedirectWithToast(string page, Guid? id, string toast)
     {
         TempData[IndexModel.ToastKey] = toast;
-        return RedirectToPage("Index");
+        return RedirectToPage(page, new { id });
     }
 }

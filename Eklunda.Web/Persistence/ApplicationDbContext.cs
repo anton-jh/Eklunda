@@ -52,6 +52,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         {
             b.Property(x => x.Title).HasMaxLength(Suggestion.MaxTitleLength);
             b.Property(x => x.Description).HasMaxLength(Suggestion.MaxDescriptionLength);
+            b.HasIndex(x => x.DeletedAt);
+        });
+
+        modelBuilder.Entity<SuggestionComment>(b =>
+        {
+            b.Property(x => x.Text).HasMaxLength(SuggestionComment.MaxTextLength);
+            b.HasOne<Suggestion>().WithMany().HasForeignKey(x => x.SuggestionId);
+            b.HasIndex(x => x.SuggestionId);
         });
     }
 
@@ -72,6 +80,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     // Suggestions
     public required DbSet<Suggestion> Suggestions { get; init; }
+    public required DbSet<SuggestionComment> SuggestionComments { get; init; }
 }
 
 

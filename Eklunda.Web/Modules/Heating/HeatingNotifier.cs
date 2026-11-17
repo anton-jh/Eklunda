@@ -39,10 +39,7 @@ public class HeatingNotifier(
             lines.Add(summary);
 
         if (!string.IsNullOrWhiteSpace(entry.Notes))
-        {
-            var notes = entry.Notes.Trim();
-            lines.Add(notes.Length > MaxNotesLength ? notes[..MaxNotesLength] + "…" : notes);
-        }
+            lines.Add(Strings.Shorten(entry.Notes, MaxNotesLength));
 
         var title = $"{names.NameOf(entry.CreatedBy)} loggade uppvärmningen {When(entry.Timestamp)}";
         if (editedBy is not null)

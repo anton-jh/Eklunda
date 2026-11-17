@@ -1,5 +1,6 @@
 using Eklunda.Web.Core.Users;
 using Eklunda.Web.Persistence;
+using Eklunda.Web.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace Eklunda.Web.Core.Intentions;
@@ -40,11 +41,7 @@ public class IntentionService(ApplicationDbContext dbContext)
 
     public Intention Create(string description, UserId createdBy, string? doneWhenEvent = null)
     {
-        description = description.Trim();
-        if (description.Length > MaxDescriptionLength)
-            description = description[..MaxDescriptionLength];
-
-        var intention = new Intention(description, createdBy, doneWhenEvent);
+        var intention = new Intention(Strings.Clean(description, MaxDescriptionLength), createdBy, doneWhenEvent);
         dbContext.Intentions.Add(intention);
         return intention;
     }

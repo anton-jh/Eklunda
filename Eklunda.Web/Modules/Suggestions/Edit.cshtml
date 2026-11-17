@@ -11,7 +11,14 @@
 }
 
 <nav class="topnav">
-    <a asp-page="Index">‹ Förslagslåda</a>
+    @if (suggestion is null)
+    {
+        <a asp-page="Index">‹ Förslagslåda</a>
+    }
+    else
+    {
+        <a asp-page="Details" asp-route-id="@suggestion.Id">‹ Förslaget</a>
+    }
 </nav>
 
 <header class="page-header">
