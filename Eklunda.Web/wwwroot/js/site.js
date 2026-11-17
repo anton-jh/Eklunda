@@ -32,6 +32,13 @@
         return reg.pushManager.getSubscription();
     }
 
+    async function updateWarning() {
+        const warning = document.querySelector("[data-push-warning]");
+        if (!warning) return;
+        const state = await window.eklundaPush.state();
+        warning.hidden = state !== "off" && state !== "denied";
+    }
+
     window.eklundaPush = {
         // "unsupported" | "denied" | "off" | "on"
         async state() {
@@ -50,6 +57,7 @@
                     applicationServerKey: base64UrlToBytes(publicKey)
                 });
             await save(subscription);
+            await updateWarning();
         },
 
         async disable() {
@@ -57,8 +65,11 @@
             if (!subscription) return;
             await post("/api/push/unsubscribe", { endpoint: subscription.endpoint });
             await subscription.unsubscribe();
+            await updateWarning();
         }
     };
+
+    if (currentUser) updateWarning().catch(e => console.warn("Push warning:", e));
 
     // Re-save when the device switched user or the browser replaced the subscription.
     if (supported && currentUser && Notification.permission === "granted") {

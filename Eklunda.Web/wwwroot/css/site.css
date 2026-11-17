@@ -7,6 +7,7 @@
     --accent: #f08a3e;
     --accent-text: #1a1007;
     --ok: #3fb950;
+    --danger: #f85149;
 
     color-scheme: dark;
     background: var(--bg);
@@ -43,6 +44,21 @@ main {
 .appbar-title {
     font-weight: 650;
     text-decoration: none;
+}
+
+.push-warning {
+    display: flex;
+    align-items: center;
+    gap: .375rem;
+    margin-left: auto;
+    padding: 0 .5rem;
+    color: var(--danger);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.push-warning[hidden] {
+    display: none;
 }
 
 .icon-button {
@@ -141,8 +157,14 @@ main {
     min-height: calc(100dvh - 2.5rem - env(safe-area-inset-bottom));
 }
 
+.home-header {
+    display: flex;
+    align-items: center;
+    margin: 2.5rem 0 2rem;
+}
+
 .home h1 {
-    margin: 2.5rem .25rem 2rem;
+    margin: 0 .25rem;
     font-size: 2rem;
 }
 
