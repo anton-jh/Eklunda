@@ -278,6 +278,19 @@ legend + .temp {
     font-style: normal;
 }
 
+/* A labelled group of rows inside a fieldset */
+.subhead {
+    margin: 0;
+    padding: 1rem 0 .25rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .875rem;
+}
+
+.subhead + .temp {
+    border-top: 0;
+}
+
 /* Fire toggles */
 .toggles {
     display: grid;
@@ -318,6 +331,10 @@ legend + .temp {
     border-color: var(--accent);
     background: color-mix(in srgb, var(--accent) 18%, transparent);
     color: var(--accent);
+}
+
+.toggle input:disabled + span {
+    opacity: .35;
 }
 
 /* Notes */

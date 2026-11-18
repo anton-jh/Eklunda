@@ -8,5 +8,8 @@ public record LogEntryValues(
     int? TempTankBoiler,
     bool LitFire,
     bool StokedFire,
+    StokeAmount? StokeAmount,
+    bool SweptBoiler,
     AmountLeftInFire? AmountLeftInFire,
+    FireState? FireState,
     string? Notes);

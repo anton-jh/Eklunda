@@ -9,14 +9,28 @@
 
 @section Scripts {
     <script>
-        // Radios can't normally be unchecked; let a second tap clear the choice (the field is optional).
-        document.querySelectorAll("[data-clearable] input[type=radio]").forEach(radio => {
-            let wasChecked = false;
-            radio.addEventListener("pointerdown", () => wasChecked = radio.checked);
-            radio.addEventListener("click", () => {
-                if (wasChecked) radio.checked = false;
-                wasChecked = false;
-            });
+        const form = document.querySelector("form");
+
+        // With nothing left in the boiler there are no flames. With wood left, there usually are.
+        const fire = document.getElementById("fire");
+        const noFire = fire.querySelector("[value=None]");
+        const flames = fire.querySelector("[value=Flames]");
+        document.getElementById("amount-left").addEventListener("change", () => {
+            const amountLeft = form.elements.amountLeftInFire.value;
+            flames.disabled = amountLeft === "None";
+            if (amountLeft !== "None")
+                flames.checked = true;
+            else if (flames.checked || form.elements.fireState.value === "")
+                noFire.checked = true;
+        });
+
+        // "Lagt på" shows how much, full by default.
+        const stoked = form.elements.stokedFire;
+        const stoke = document.getElementById("stoke");
+        stoked.addEventListener("change", () => {
+            stoke.hidden = !stoked.checked;
+            if (stoked.checked && form.elements.stokeAmount.value === "")
+                stoke.querySelector("[value=Full]").checked = true;
         });
     </script>
 }
@@ -31,55 +45,70 @@
 
 <form method="post" autocomplete="off">
     <fieldset>
-        <legend>Ackumulatortank</legend>
+        <legend>Temperaturer</legend>
+        <label class="temp">
+            <span>Panna</span>
+            <input name="tempTankBoiler" value="@entry?.TempTankBoiler" type="number" inputmode="numeric" min="0" max="150" required />
+            <em>°C</em>
+        </label>
+        <p class="subhead">Ackumulatortankar</p>
         <label class="temp">
             <span>Övre</span>
-            <input name="tempTankUpper" value="@entry?.TempTankUpper" type="number" inputmode="numeric" min="0" max="110" />
+            <input name="tempTankUpper" value="@entry?.TempTankUpper" type="number" inputmode="numeric" min="0" max="110" required />
             <em>°C</em>
         </label>
         <label class="temp">
             <span>Mitten</span>
-            <input name="tempTankMid" value="@entry?.TempTankMid" type="number" inputmode="numeric" min="0" max="110" />
+            <input name="tempTankMid" value="@entry?.TempTankMid" type="number" inputmode="numeric" min="0" max="110" required />
             <em>°C</em>
         </label>
         <label class="temp">
             <span>Nedre</span>
-            <input name="tempTankLower" value="@entry?.TempTankLower" type="number" inputmode="numeric" min="0" max="110" />
-            <em>°C</em>
-        </label>
-    </fieldset>
-
-    <fieldset>
-        <legend>Panna</legend>
-        <label class="temp">
-            <span>Temperatur</span>
-            <input name="tempTankBoiler" value="@entry?.TempTankBoiler" type="number" inputmode="numeric" min="0" max="150" />
+            <input name="tempTankLower" value="@entry?.TempTankLower" type="number" inputmode="numeric" min="0" max="110" required />
             <em>°C</em>
         </label>
     </fieldset>
 
     <fieldset>
         <legend>Kvar i pannan</legend>
-        @* Optional: tap the selected option again to clear it. *@
-        <div class="toggles toggles-3" data-clearable>
+        <div id="amount-left" class="toggles toggles-3">
             <label class="toggle">
-                <input name="amountLeftInFire" type="radio" value="@AmountLeftInFire.None" checked="@(entry?.AmountLeftInFire == AmountLeftInFire.None)" />
+                <input name="amountLeftInFire" type="radio" required value="@AmountLeftInFire.None" checked="@(entry?.AmountLeftInFire == AmountLeftInFire.None)" />
                 <span>Inget</span>
             </label>
             <label class="toggle">
-                <input name="amountLeftInFire" type="radio" value="@AmountLeftInFire.Some" checked="@(entry?.AmountLeftInFire == AmountLeftInFire.Some)" />
+                <input name="amountLeftInFire" type="radio" required value="@AmountLeftInFire.Some" checked="@(entry?.AmountLeftInFire == AmountLeftInFire.Some)" />
                 <span>Lite</span>
             </label>
             <label class="toggle">
-                <input name="amountLeftInFire" type="radio" value="@AmountLeftInFire.Much" checked="@(entry?.AmountLeftInFire == AmountLeftInFire.Much)" />
+                <input name="amountLeftInFire" type="radio" required value="@AmountLeftInFire.Much" checked="@(entry?.AmountLeftInFire == AmountLeftInFire.Much)" />
                 <span>Mycket</span>
+            </label>
+        </div>
+    </fieldset>
+
+    <fieldset id="fire">
+        <legend>Eld i pannan</legend>
+        <div class="toggles toggles-3">
+            <label class="toggle">
+                <input name="fireState" type="radio" required value="@FireState.None" checked="@(entry?.FireState == FireState.None)" />
+                <span>Ingen</span>
+            </label>
+            <label class="toggle">
+                <input name="fireState" type="radio" required value="@FireState.Embers" checked="@(entry?.FireState == FireState.Embers)" />
+                <span>Glöd</span>
+            </label>
+            <label class="toggle">
+                <input name="fireState" type="radio" required value="@FireState.Flames" checked="@(entry?.FireState == FireState.Flames)"
+                       disabled="@(entry?.AmountLeftInFire == AmountLeftInFire.None)" />
+                <span>Eld</span>
             </label>
         </div>
     </fieldset>
 
     <fieldset>
         <legend>Åtgärder</legend>
-        <div class="toggles">
+        <div class="toggles toggles-3">
             <label class="toggle">
                 <input name="litFire" type="checkbox" value="true" checked="@(entry?.LitFire == true)" />
                 <span>Tänt</span>
@@ -87,6 +116,28 @@
             <label class="toggle">
                 <input name="stokedFire" type="checkbox" value="true" checked="@(entry?.StokedFire == true)" />
                 <span>Lagt på</span>
+            </label>
+            <label class="toggle">
+                <input name="sweptBoiler" type="checkbox" value="true" checked="@(entry?.SweptBoiler == true)" />
+                <span>Sotat</span>
+            </label>
+        </div>
+    </fieldset>
+
+    <fieldset id="stoke" hidden="@(entry?.StokedFire != true)">
+        <legend>Lagt på</legend>
+        <div class="toggles toggles-3">
+            <label class="toggle">
+                <input name="stokeAmount" type="radio" value="@StokeAmount.Little" checked="@(entry?.StokeAmount == StokeAmount.Little)" />
+                <span>Lite</span>
+            </label>
+            <label class="toggle">
+                <input name="stokeAmount" type="radio" value="@StokeAmount.Half" checked="@(entry?.StokeAmount == StokeAmount.Half)" />
+                <span>Halv</span>
+            </label>
+            <label class="toggle">
+                <input name="stokeAmount" type="radio" value="@StokeAmount.Full" checked="@(entry?.StokeAmount == StokeAmount.Full)" />
+                <span>Full</span>
             </label>
         </div>
     </fieldset>

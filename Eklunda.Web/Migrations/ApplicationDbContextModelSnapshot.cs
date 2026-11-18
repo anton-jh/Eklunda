@@ -143,6 +143,9 @@ namespace Eklunda.Web.Migrations
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("FireState")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("LitFire")
                         .HasColumnType("boolean");
 
@@ -150,7 +153,13 @@ namespace Eklunda.Web.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("StokeAmount")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("StokedFire")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("SweptBoiler")
                         .HasColumnType("boolean");
 
                     b.Property<int?>("TempTankBoiler")

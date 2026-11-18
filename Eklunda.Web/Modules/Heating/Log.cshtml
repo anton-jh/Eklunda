@@ -52,25 +52,30 @@ else
                         @if (hasTank || entry.TempTankBoiler is not null || entry.AmountLeftInFire is not null)
                         {
                             <div class="readings">
-                                @if (hasTank)
-                                {
-                                    <span><small>Tank</small> @HeatingFormat.Temp(entry.TempTankUpper) · @HeatingFormat.Temp(entry.TempTankMid) · @HeatingFormat.Temp(entry.TempTankLower)°</span>
-                                }
                                 @if (entry.TempTankBoiler is not null)
                                 {
                                     <span><small>Panna</small> @(entry.TempTankBoiler)°</span>
+                                }
+                                @if (hasTank)
+                                {
+                                    <span><small>Tank</small> @HeatingFormat.Temp(entry.TempTankUpper) · @HeatingFormat.Temp(entry.TempTankMid) · @HeatingFormat.Temp(entry.TempTankLower)°</span>
                                 }
                                 @if (entry.AmountLeftInFire is { } amountLeft)
                                 {
                                     <span><small>Kvar</small> @HeatingFormat.AmountLeft(amountLeft)</span>
                                 }
+                                @if (entry.FireState is { } fire)
+                                {
+                                    <span>@HeatingFormat.Fire(fire)</span>
+                                }
                             </div>
                         }
-                        @if (entry.LitFire || entry.StokedFire || !string.IsNullOrWhiteSpace(entry.Notes))
+                        @if (entry.LitFire || entry.StokedFire || entry.SweptBoiler || !string.IsNullOrWhiteSpace(entry.Notes))
                         {
                             <div class="entry-extra">
                                 @if (entry.LitFire) { <span class="flag">Tänt</span> }
-                                @if (entry.StokedFire) { <span class="flag">Lagt på</span> }
+                                @if (entry.StokedFire) { <span class="flag">@HeatingFormat.Stoked(entry.StokeAmount)</span> }
+                                @if (entry.SweptBoiler) { <span class="flag">Sotat</span> }
                                 @if (!string.IsNullOrWhiteSpace(entry.Notes)) { <span class="notes">@entry.Notes</span> }
                             </div>
                         }
