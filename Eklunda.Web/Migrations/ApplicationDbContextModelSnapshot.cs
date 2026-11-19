@@ -153,6 +153,9 @@ namespace Eklunda.Web.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("Shunt")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("StokeAmount")
                         .HasColumnType("integer");
 

@@ -147,6 +147,15 @@
         <textarea id="notes" name="notes" rows="3" placeholder="Valfritt">@entry?.Notes</textarea>
     </fieldset>
 
+    <fieldset>
+        <legend>Shunt</legend>
+        <label class="temp">
+            <span>Läge</span>
+            <input name="shunt" value="@entry?.Shunt" type="number" inputmode="numeric" min="0" max="10" required />
+            <em></em>
+        </label>
+    </fieldset>
+
     <div class="actions">
         <button type="submit">Spara</button>
     </div>

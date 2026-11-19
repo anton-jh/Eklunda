@@ -41,6 +41,8 @@ public static class HeatingFormat
             parts.Add($"Panna {boiler}°");
         if (HasTank(entry))
             parts.Add($"Tank {Temp(entry.TempTankUpper)} · {Temp(entry.TempTankMid)} · {Temp(entry.TempTankLower)}°");
+        if (entry.Shunt is { } shunt)
+            parts.Add($"Shunt {shunt}");
         if (entry.AmountLeftInFire is { } amountLeft)
             parts.Add($"Kvar {AmountLeft(amountLeft)}");
         if (entry.FireState is { } fire)

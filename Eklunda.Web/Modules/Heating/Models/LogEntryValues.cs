@@ -6,6 +6,7 @@ public record LogEntryValues(
     int? TempTankMid,
     int? TempTankLower,
     int? TempTankBoiler,
+    int? Shunt,
     bool LitFire,
     bool StokedFire,
     StokeAmount? StokeAmount,

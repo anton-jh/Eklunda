@@ -10,6 +10,7 @@ public class HeatingLogEntry(DateTimeOffset timestamp, UserId? createdBy)
     public int? TempTankMid { get; private set; }
     public int? TempTankLower { get; private set; }
     public int? TempTankBoiler { get; private set; }
+    public int? Shunt { get; private set; }
     public bool LitFire { get; private set; }
     public bool StokedFire { get; private set; }
     public StokeAmount? StokeAmount { get; private set; }
@@ -25,6 +26,7 @@ public class HeatingLogEntry(DateTimeOffset timestamp, UserId? createdBy)
         TempTankMid = values.TempTankMid;
         TempTankLower = values.TempTankLower;
         TempTankBoiler = values.TempTankBoiler;
+        Shunt = values.Shunt;
         LitFire = values.LitFire;
         StokedFire = values.StokedFire;
         // The form hides the amount but still posts it.

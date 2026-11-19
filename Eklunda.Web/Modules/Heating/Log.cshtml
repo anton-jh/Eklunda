@@ -49,7 +49,7 @@ else
                 <a class="entry-link" asp-page="LogEntry" asp-route-id="@entry.Id">
                     <time datetime="@entry.Timestamp.ToString("O")">@entry.Timestamp.ToLocalTime().ToString("HH:mm")</time>
                     <div class="entry-body">
-                        @if (hasTank || entry.TempTankBoiler is not null || entry.AmountLeftInFire is not null)
+                        @if (hasTank || entry.TempTankBoiler is not null || entry.Shunt is not null || entry.AmountLeftInFire is not null)
                         {
                             <div class="readings">
                                 @if (entry.TempTankBoiler is not null)
@@ -59,6 +59,10 @@ else
                                 @if (hasTank)
                                 {
                                     <span><small>Tank</small> @HeatingFormat.Temp(entry.TempTankUpper) · @HeatingFormat.Temp(entry.TempTankMid) · @HeatingFormat.Temp(entry.TempTankLower)°</span>
+                                }
+                                @if (entry.Shunt is not null)
+                                {
+                                    <span><small>Shunt</small> @entry.Shunt</span>
                                 }
                                 @if (entry.AmountLeftInFire is { } amountLeft)
                                 {
