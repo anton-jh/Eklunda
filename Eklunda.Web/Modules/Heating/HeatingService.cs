@@ -34,12 +34,23 @@ public class HeatingService(
             NextCheckDescription, userId, CreatedHeatingLogEntryEvent.Key, cancellationToken);
 
         if (created)
-        {
-            var settings = await GetSettings(cancellationToken);
-            intention.SetReminder(DateTimeOffset.UtcNow.AddHours(settings.NextCheckReminderHours));
-        }
+            intention.SetReminder(await NextCheckReminderTime(cancellationToken));
 
         return (intention, created);
+    }
+
+    // Counted from the latest log entry, or from now if there is none or that time has passed.
+    private async Task<DateTimeOffset> NextCheckReminderTime(CancellationToken cancellationToken)
+    {
+        var settings = await GetSettings(cancellationToken);
+        var delay = TimeSpan.FromHours(settings.NextCheckReminderHours);
+        var now = DateTimeOffset.UtcNow;
+
+        var latest = await dbContext.HeatingLogEntries
+            .Select(x => (DateTimeOffset?)x.Timestamp)
+            .MaxAsync(cancellationToken);
+
+        return latest + delay is { } fromLatest && fromLatest > now ? fromLatest : now + delay;
     }
 
     public Task<HeatingSettings> GetSettings(CancellationToken cancellationToken)
